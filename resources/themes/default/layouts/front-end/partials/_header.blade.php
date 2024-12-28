@@ -206,7 +206,6 @@
                 </div>
             </div>
         </div>
-
         <div class="navbar navbar-expand-md navbar-stuck-menu">
             <div class="container px-10px">
                 <div class="collapse navbar-collapse text-align-direction" id="navbarCollapse">

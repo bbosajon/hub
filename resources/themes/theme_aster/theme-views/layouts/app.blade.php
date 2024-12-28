@@ -74,7 +74,6 @@
     }
     setThemeMode();
 </script>
-
 <div class="preloader d--none" id="loading">
     <img width="200" alt="" src="{{ getStorageImages(path: getWebConfig(name: 'loader_gif'), type: 'source', source: theme_asset('assets/img/loader.gif')) }}">
 </div>

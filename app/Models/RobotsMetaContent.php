@@ -117,5 +117,4 @@ class RobotsMetaContent extends Model
             cacheRemoveByType(type: 'robots_meta_contents');
         });
     }
-
 }

@@ -675,7 +675,6 @@ trait UpdateClass
                 BusinessSetting::whereIn('type', $gateway)->delete();
             }
         } catch (\Exception $exception) {
-
         }
         return true;
     }

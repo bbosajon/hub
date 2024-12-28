@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Models\Shop;
 use App\Traits\CacheManagerTrait;
 use App\Traits\EmailTemplateTrait;
 use App\Traits\InHouseTrait;
@@ -20,6 +21,7 @@ use App\Models\Seller;
 use App\Models\Review;
 use App\Utils\ProductManager;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +67,6 @@ class HomeController extends Controller
         $bannerTypeMainSectionBanner = $this->cacheBannerTable(bannerType: 'Main Section Banner');
         $topVendorsList = ProductManager::getPriorityWiseTopVendorQuery($this->cacheHomePageTopVendorsList());
         $bannerTypeFooterBanner = $this->cacheBannerTable(bannerType: 'Footer Banner', dataLimit: 10);
-        $clearanceSaleProducts = $this->cacheHomePageClearanceSaleProducts();
 
         $categories = CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting();
         $userId = Auth::guard('customer')->user() ? Auth::guard('customer')->id() : 0;
@@ -75,29 +76,16 @@ class HomeController extends Controller
         $bestSellProduct = $bestSellProduct->count() == 0 ? $latestProductsList : $bestSellProduct;
         $topRatedProducts = $topRatedProducts->count() == 0 ? $bestSellProduct : $topRatedProducts;
 
-        $featuredProductsList = ProductManager::getPriorityWiseFeaturedProductsQuery(query: $this->product->active()->with(['clearanceSale' => function($query) {
-            return $query->active();
-        }]), dataLimit: 12);
-        $newArrivalProducts = ProductManager::getPriorityWiseNewArrivalProductsQuery(query: $this->product->active()->with(['clearanceSale' => function($query) {
-            return $query->active();
-        }]), dataLimit: 8);
+        $featuredProductsList = ProductManager::getPriorityWiseFeaturedProductsQuery(query: $this->product->active(), dataLimit: 12);
+        $newArrivalProducts = ProductManager::getPriorityWiseNewArrivalProductsQuery(query: $this->product->active(), dataLimit: 8);
 
-        $dealOfTheDay = DealOfTheDay::with(['product' => function($query) {
-                            return $query->active()->with(['clearanceSale' => function($query) {
-                                return $query->active();
-                            }]);
-                        }])
-                        ->join('products', 'products.id', '=', 'deal_of_the_days.product_id')
-                        ->select('deal_of_the_days.*', 'products.unit_price')
-                        ->where('products.status', 1)
-                        ->where('deal_of_the_days.status', 1)
-                        ->first();
+        $dealOfTheDay = DealOfTheDay::join('products', 'products.id', '=', 'deal_of_the_days.product_id')->select('deal_of_the_days.*', 'products.unit_price')->where('products.status', 1)->where('deal_of_the_days.status', 1)->first();
 
         return view(VIEW_FILE_NAMES['home'],
             compact(
                 'flashDeal', 'featuredProductsList', 'topRatedProducts', 'bestSellProduct', 'latestProductsList', 'categories', 'brands',
                 'dealOfTheDay', 'topVendorsList', 'homeCategories', 'bannerTypeMainBanner', 'bannerTypeMainSectionBanner',
-                'current_date', 'recommendedProduct', 'bannerTypeFooterBanner', 'newArrivalProducts', 'clearanceSaleProducts'
+                'current_date', 'recommendedProduct', 'bannerTypeFooterBanner', 'newArrivalProducts'
             )
         );
     }
@@ -109,13 +97,13 @@ class HomeController extends Controller
         $latestProductsList = $this->cacheHomePageLatestProductList();
         $randomSingleProduct = $this->cacheHomePageRandomSingleProductItem();
         $topVendorsList = ProductManager::getPriorityWiseTopVendorQuery(query: $this->cacheHomePageTopVendorsList());
-        $clearanceSaleProducts = $this->cacheHomePageClearanceSaleProducts();
 
         $categories = CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting(dataLimit: 11);
         $userId = Auth::guard('customer')->user() ? Auth::guard('customer')->id() : 0;
         $flashDeal = ProductManager::getPriorityWiseFlashDealsProductsQuery(userId: $userId);
         $current_date = date('Y-m-d H:i:s');
 
+        // Find what you need
         $findWhatYouNeedCategoriesData = Cache::remember(FIND_WHAT_YOU_NEED_CATEGORIES_LIST, CACHE_FOR_3_HOURS, function () {
             return $this->category->where('parent_id', 0)
                 ->with(['childes' => function ($query) {

@@ -766,7 +766,6 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['taxTotal']), currencyCode: getCurrencyCode()) }}
                                     </td>
                                 </tr>
-
                                 <tr>
                                     <td class="border-dashed-top font-weight-bold text-left fz-14 font-bold">
                                         {{ translate('total')}}</td>

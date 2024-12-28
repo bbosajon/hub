@@ -1712,7 +1712,6 @@ class ProductManager
             }
 
             $query = $query->get();
-
             if ($vendorProductListSortBy['sort_by'] == 'latest_created') {
                 $query = $query->sortByDesc('id');
             } elseif ($vendorProductListSortBy['sort_by'] == 'first_created') {

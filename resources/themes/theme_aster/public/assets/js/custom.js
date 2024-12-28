@@ -470,20 +470,37 @@ function shareOnSocialMedia() {
 }
 shareOnSocialMedia();
 
-function checkAddToCartValidity(formSelector = ".add-to-cart-details-form") {
+function checkAddToCartValidity(form_id) {
     let names = {};
-    $(formSelector).find("input:radio").each(function () {
+    $("." + form_id + " input:radio").each(function () {
         names[$(this).attr("name")] = true;
     });
     let count = 0;
     $.each(names, function () {
         count++;
     });
-    return parseInt($(formSelector).find("input:radio:checked").length) === count;
+    return parseInt($("." + form_id + " input:radio:checked").length) === count;
 }
+function buyNow() {
+    $(".buy-now").on("click", function () {
+        let formId = $(this).data("form-id");
+        let redirectStatus = $(this).data("redirect-status");
+        let url = $(this).data("action");
+        addToCart(formId, redirectStatus, url);
+        if (redirectStatus === false) {
+            $("#quickViewModal").modal("hide");
+            $("#loginModal").modal("show");
+            toastr.warning($(".login-warning").data("login-warning-message"));
+        }
+    });
+}
+buyNow();
+$("#add-to-cart-form input").on("change", function () {
+    stock_check();
+});
 
-function getStockCheckOnVariantPrice(formSelector = ".add-to-cart-details-form") {
-    const productQty = $(formSelector).find(".product_quantity__qty");
+function stock_check() {
+    const productQty = $(".product_quantity__qty");
     const minValue = parseInt(productQty.attr("min"));
     const maxValue = parseInt(productQty.attr("max"));
     const valueCurrent = parseInt(productQty.val());
@@ -492,16 +509,39 @@ function getStockCheckOnVariantPrice(formSelector = ".add-to-cart-details-form")
         productQty.val(minValue);
         try {
             if (productQty.data("details-page")) {
-                productQty.parent().find(".quantity__minus").html('<i class="bi bi-dash"></i>');
+                productQty
+                    .parent()
+                    .find(".quantity__minus")
+                    .html('<i class="bi bi-dash"></i>');
             } else {
-                productQty.parent().find(".quantity__minus").html('<i class="bi bi-trash3-fill text-danger fs-10"></i>');
+                productQty
+                    .parent()
+                    .find(".quantity__minus")
+                    .html(
+                        '<i class="bi bi-trash3-fill text-danger fs-10"></i>'
+                    );
             }
         } catch (e) {
-            productQty.parent().find(".quantity__minus").html('<i class="bi bi-trash3-fill text-danger fs-10"></i>');
+            productQty
+                .parent()
+                .find(".quantity__minus")
+                .html('<i class="bi bi-trash3-fill text-danger fs-10"></i>');
         }
     } else {
-        productQty.parent().find(".quantity__minus").html('<i class="bi bi-dash"></i>');
+        productQty
+            .parent()
+            .find(".quantity__minus")
+            .html('<i class="bi bi-dash"></i>');
     }
+
+    if (valueCurrent > maxValue) {
+        if (maxValue <= 0) {
+            productQty.val(minValue);
+        } else {
+            productQty.val(maxValue);
+        }
+    }
+    getVariantPrice();
 }
 
 /* Increase */
@@ -516,12 +556,10 @@ $(".quantity__plus").on("click", function () {
             $(this).attr("disabled", true);
         }
     }
-    let parentForm = $(this).data("form");
-    getVariantPrice(parentForm ?? ".add-to-cart-details-form");
+    stock_check();
 });
 /* Decrease */
 $(".quantity__minus").on("click", function () {
-    let parentForm = $(this).data("form") ?? ".add-to-cart-details-form";
     if ($(this).data("prevent") !== true) {
         let $qty = $(this).parent().find("input");
         let currentVal = parseInt($qty.val());
@@ -529,85 +567,49 @@ $(".quantity__minus").on("click", function () {
             $qty.val(currentVal - 1);
         }
         if (currentVal < $qty.attr("max")) {
-            $(parentForm).find(".quantity__plus").removeAttr("disabled", true);
+            $(".quantity__plus").removeAttr("disabled", true);
         }
     }
-    getVariantPrice(parentForm);
+    stock_check();
 });
-
-$(".add-to-cart-details-form").on("submit", function (e) {
+$("#add-to-cart-form").on("submit", function (e) {
     e.preventDefault();
 });
-
-$(".add-to-cart-details-form input").on("change", function () {
-    getVariantPrice(".add-to-cart-details-form");
-});
-
-$(".add-to-cart-sticky-form input").on("change", function () {
-    getVariantPrice(".add-to-cart-sticky-form");
-});
-
 function quickViewDefaultFunctionality() {
     addToCartOnclick();
-    buyNow();
 }
 quickViewDefaultFunctionality();
-
 function addToCartOnclick() {
-    $(".product-add-to-cart-button").on("click", function () {
-        let parentElement = $(this).closest('.product-cart-option-container');
-        let productCartForm = parentElement.find('.addToCartDynamicForm');
-        addToCart(productCartForm ?? $(".add-to-cart-details-form"));
+    $(".add-to-cart").on("click", function () {
+        addToCart($(this).data("form-id"));
     });
 }
-
-function buyNow() {
-    $(".product-buy-now-button").on("click", function () {
-        $('.product-details-sticky-section').removeClass('active');
-        let redirectStatus = $(this).data("auth");
-        let url = $(this).data("route");
-        let parentElement = $(this).closest('.product-cart-option-container');
-        let productCartForm = parentElement.find('.addToCartDynamicForm');
-        addToCart(productCartForm ?? $(".add-to-cart-details-form"), redirectStatus, url);
-        if (redirectStatus === false) {
-            $("#quickViewModal").modal("hide");
-            $("#loginModal").modal("show");
-            toastr.warning($(".login-warning").data("login-warning-message"));
-        }
-    });
-}
-
-function hideProductDetailsStickySection() {
-    $('html, body').animate({ scrollTop: 0 }, 'slow');
-    setTimeout(() => {
-        $('.product-details-sticky-section').removeClass('active');
-    })
-}
-
-function addToCart(formSelector, redirectToCheckout = false, url = null) {
-    if (checkValidityForVariantPrice(formSelector)) {
+function addToCart(form_id, redirect_to_checkout = false, url = null) {
+    let getQuantity = $("#" + form_id + "input[name=quantity]");
+    if (checkAddToCartValidity(form_id) && getQuantity.val() !== 0) {
         $.ajaxSetup({
             headers: {
                 "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
             },
         });
 
-        let existCartItem = $('.product-exist-in-cart-list[name="key"]').val();
-        let formActionUrl = $(formSelector).attr("action");
-        if (existCartItem !== "" && !redirectToCheckout) {
+        let existCartItem = $('.in_cart_key[name="key"]').val();
+        let formActionUrl = $(`#` + form_id).attr("action");
+        if (existCartItem !== "" && !redirect_to_checkout) {
             formActionUrl = $("#update_quantity_url").data("url");
         }
 
         $.post({
             url: formActionUrl,
-            data: $(formSelector).serializeArray().concat({
+            data: $("#" + form_id)
+                .serializeArray()
+                .concat({
                     name: "buy_now",
-                    value: redirectToCheckout ? 1 : 0,
+                    value: redirect_to_checkout ? 1 : 0,
                 }),
             beforeSend: function () {},
             success: function (response) {
                 if (response.status === 2) {
-                    hideProductDetailsStickySection()
                     $("#buyNowModal-body").html(
                         response.shippingMethodHtmlView
                     );

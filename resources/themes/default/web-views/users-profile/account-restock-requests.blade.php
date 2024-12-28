@@ -38,9 +38,13 @@
                                             <a href="" class="d-block h-100">
                                                 <img class="__img-full" src="{{ getStorageImages(path: $restockProduct?->product?->thumbnail_full_url, type: 'backend-product') }}" alt="Wishlist">
                                             </a>
-                                            @if(getProductPriceByType(product: $restockProduct?->product, type: 'discount', result: 'value') > 0)
+                                            @if($restockProduct?->product?->discount > 0)
                                                 <span class="for-discount-value px-1 font-bold fs-13 direction-ltr">
-                                                     -{{ getProductPriceByType(product: $restockProduct?->product, type: 'discount', result: 'string') }}
+                                                    @if ($restockProduct?->product?->discount_type == 'percent')
+                                                        -{{round($restockProduct?->product?->discount,(!empty(getWebConfig(name: 'decimal_point_settings')) ? getWebConfig(name: 'decimal_point_settings'): 0))}}%
+                                                    @elseif($restockProduct?->product?->discount_type =='flat')
+                                                        -{{ webCurrencyConverter(amount: $restockProduct?->product?->discount) }}
+                                                    @endif
                                                 </span>
                                             @endif
                                         </div>

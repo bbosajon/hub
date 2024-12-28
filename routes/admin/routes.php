@@ -1032,6 +1032,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin']],
                 Route::get(EmailTemplate::VIEW[URI] . '/{type}' . '/{tab}', 'getView')->name('view');
                 Route::post(EmailTemplate::UPDATE[URI] . '/{type}' . '/{tab}', 'update')->name('update');
                 Route::post(EmailTemplate::UPDATE_STATUS[URI] . '/{type}' . '/{tab}', 'updateStatus')->name('update-status');
+<<<<<<< HEAD
+=======
+
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
             });
         });
 

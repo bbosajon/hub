@@ -1058,7 +1058,7 @@ img, figure {
 .customer-profile-wishlist .price-range del {
     font-size: 14px;
 }
-.customer-profile-wishlist .price-range .discounted-unit-price {
+.customer-profile-wishlist .price-range .discounted_unit_price {
     font-size: 15px;
 }
 
@@ -1087,7 +1087,7 @@ img, figure {
 }
 
 .shadow-border {
-    border: 2px solid #9b9b9b45 !important;
+    border: 3px solid #9b9b9b45 !important;
 }
 
 .details-text-justify h1,

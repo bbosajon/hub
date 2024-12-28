@@ -1,4 +1,4 @@
-@extends('layouts.back-end.app-seller')
+z@extends('layouts.back-end.app-seller')
 
 @section('title', translate('product_Preview'))
 
@@ -18,20 +18,13 @@
                 <div>
                     <div class="media flex-nowrap flex-column flex-sm-row gap-3 flex-grow-1 align-items-center align-items-md-start">
                         <div class="d-flex flex-column align-items-center __min-w-165px">
-                            <div class="position-relative">
-                                @if($product?->clearanceSale)
-                                    <div class="position-absolute z-index-1 badge badge-soft-warning user-select-none m-2">
-                                        {{ translate('Clearance_Sale') }}
-                                    </div>
-                                @endif
-                                <a class="aspect-1 float-left overflow-hidden"
-                                   href="{{ getStorageImages(path:$product->thumbnail_full_url,type: 'backend-basic') }}"
-                                   data-lightbox="product-gallery-{{ $product['id'] }}">
-                                    <img class="avatar avatar-170 rounded-0 img-fit"
-                                         src="{{ getStorageImages(path:$product->thumbnail_full_url,type: 'backend-basic') }}"
-                                         alt="">
-                                </a>
-                            </div>
+                            <a class="aspect-1 float-left overflow-hidden"
+                               href="{{ getStorageImages(path:$product->thumbnail_full_url,type: 'backend-product') }}"
+                               data-lightbox="product-gallery-{{ $product['id'] }}">
+                                <img class="avatar avatar-170 rounded-0 img-fit"
+                                     src="{{ getStorageImages(path:$product->thumbnail_full_url,type: 'backend-product') }}"
+                                     alt="">
+                            </a>
                             @if ($productActive && $isActive)
                                 <a href="{{ route('product', $product['slug']) }}"
                                    class="btn btn-outline--primary mr-1 mt-2" target="_blank">
@@ -76,10 +69,10 @@
                                         @foreach ($product->color_images_full_url as $colorImageKey => $photo)
                                             <div class="{{$colorImageKey > 4 ? 'd-none' : ''}}">
                                                 <a class="aspect-1 float-left overflow-hidden d-block border rounded-lg position-relative"
-                                                   href="{{ getStorageImages(path: $photo['image_name'], type: 'backend-basic') }}"
+                                                   href="{{ getStorageImages(path: $photo['image_name'], type: 'backend-product') }}"
                                                    data-lightbox="product-gallery-{{ $product['id'] }}">
                                                     <img width="50"  class="img-fit max-50" alt=""
-                                                         src="{{ getStorageImages(path: $photo['image_name'], type: 'backend-basic') }}">
+                                                         src="{{ getStorageImages(path: $photo['image_name'], type: 'backend-product') }}">
                                                     @if($colorImageKey > 3)
                                                         <div class="extra-images">
                                                             <span class="extra-image-count">
@@ -94,10 +87,10 @@
                                         @foreach ($product->images_full_url as $imageKey => $photo)
                                             <div class="{{$imageKey > 4 ? 'd-none' : ''}}">
                                                 <a class="aspect-1 float-left overflow-hidden d-block border rounded-lg position-relative {{$imageKey > 4 ? 'd-none' : ''}}"
-                                                   href="{{ getStorageImages(path: $photo, type: 'backend-basic') }}"
+                                                   href="{{ getStorageImages(path: $photo, type: 'backend-product') }}"
                                                    data-lightbox="product-gallery-{{ $product['id'] }}">
                                                     <img width="50"  class="img-fit max-50" alt=""
-                                                         src="{{ getStorageImages(path: $photo, type: 'backend-basic') }}">
+                                                         src="{{ getStorageImages(path: $photo, type: 'backend-product') }}">
                                                     @if($imageKey > 4)
                                                         <div class="extra-images">
                                                             <span class="extra-image-count">

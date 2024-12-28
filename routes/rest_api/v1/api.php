@@ -1,4 +1,4 @@
-<?php
+z<?php
 
 use App\Http\Controllers\RestAPI\v1\auth\CustomerAPIAuthController;
 use App\Http\Controllers\RestAPI\v1\auth\EmailVerificationController;

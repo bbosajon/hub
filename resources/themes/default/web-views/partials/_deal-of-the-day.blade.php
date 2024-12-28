@@ -47,6 +47,7 @@
                                     </h6>
                                     <div class="mb-4 pt-1 d-flex flex-wrap justify-content-center align-items-center text-center gap-8">
 
+<<<<<<< HEAD
                                         @if(getProductPriceByType(product: $dealOfTheDay?->product, type: 'discount', result: 'value') > 0)
                                             <del class="fs-14 font-semibold __color-9B9B9B">
                                                 {{ webCurrencyConverter(amount: $dealOfTheDay?->product?->unit_price) }}
@@ -54,6 +55,17 @@
                                         @endif
                                         <span class="text-accent fs-18 font-bold text-dark">
                                             {{ getProductPriceByType(product: $dealOfTheDay?->product, type: 'discounted_unit_price', result: 'string') }}
+=======
+                                        @if($dealOfTheDay->product->discount > 0)
+                                            <del class="fs-14 font-semibold __color-9B9B9B">
+                                                {{ webCurrencyConverter(amount: $dealOfTheDay->product->unit_price) }}
+                                            </del>
+                                        @endif
+                                        <span class="text-accent fs-18 font-bold text-dark">
+                                            {{ webCurrencyConverter(amount:
+                                                $dealOfTheDay->product->unit_price-(getProductDiscount(product: $dealOfTheDay->product, price: $dealOfTheDay->product->unit_price))
+                                            ) }}
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                                         </span>
                                     </div>
                                     <button class="btn btn--primary font-bold px-4 rounded-10 text-uppercase get-view-by-onclick"

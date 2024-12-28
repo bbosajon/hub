@@ -258,7 +258,6 @@
                                                         {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['taxTotal']) }}
                                                     </div>
                                                 </div>
-
                                                 @if($order->order_type == 'default_type' && $order?->is_shipping_free == 0)
                                                     <div
                                                         class="d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -268,7 +267,6 @@
                                                         </div>
                                                     </div>
                                                 @endif
-
                                                 <div
                                                     class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                                                     <h4 class="text-capitalize">{{translate('total')}}</h4>

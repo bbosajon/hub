@@ -115,6 +115,14 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
         </tr>
         <tr>
             <td colspan="2"></td>
+<<<<<<< HEAD
+=======
+            <td class="text-right">{{ translate('extra_discount') }}:</td>
+            <td class="text-right">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['extraDiscount']), currencyCode: getCurrencyCode()) }}</td>
+        </tr>
+        <tr>
+            <td colspan="2"></td>
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
             <td class="text-right">{{ translate('coupon_discount') }}:</td>
             <td class="text-right">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['couponDiscount']), currencyCode: getCurrencyCode()) }}</td>
         </tr>

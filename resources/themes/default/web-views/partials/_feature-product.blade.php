@@ -48,13 +48,23 @@
             </div>
             <div class="justify-content-between">
                 <div class="product-price">
+<<<<<<< HEAD
                     @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+=======
+                    @if($product->discount > 0)
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                         <del class="category-single-product-price">
                             {{ webCurrencyConverter(amount: $product->unit_price) }}
                         </del>
                     @endif
                     <span class="text-accent text-dark">
+<<<<<<< HEAD
                        {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
+=======
+                        {{ webCurrencyConverter(amount:
+                            $product->unit_price-(getProductDiscount(product: $product, price: $product->unit_price))
+                        ) }}
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                     </span>
                 </div>
             </div>

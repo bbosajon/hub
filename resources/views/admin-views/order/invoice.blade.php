@@ -750,7 +750,6 @@
                                     <td class="text-left font-bold">{{ translate('tax')}}</td>
                                     <td class="text-right">{{ webCurrencyConverter(amount: $orderTotalPriceSummary['taxTotal']) }}</td>
                                 </tr>
-
                                 <tr>
                                     <td class="border-dashed-top font-weight-bold text-left fz-14 font-bold">
                                         {{ translate('total')}}</td>

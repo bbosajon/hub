@@ -746,7 +746,6 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                                         <td class="text-right">{{webCurrencyConverter(amount: $orderTotalPriceSummary['shippingTotal']) }}</td>
                                     </tr>
                                 @endif
-
                                 <tr>
                                     <td class="text-left font-bold">{{ translate('coupon_Discount')}}</td>
                                     <td class="text-right">
