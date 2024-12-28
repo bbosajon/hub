@@ -35,9 +35,9 @@
             </div>
         </div>
         <div class="auth-wrapper-right">
-            @if(env('SOFTWARE_VERSION'))
+            @if(SOFTWARE_VERSION)
                 <label class="badge badge-soft-success float-right __inline-2 user-select-none">
-                    {{translate('software_version')}} : {{ env('SOFTWARE_VERSION') }}
+                    {{translate('software_version')}} : {{ SOFTWARE_VERSION }}
                 </label>
             @endif
             <div class="auth-wrapper-form">

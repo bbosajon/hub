@@ -251,10 +251,6 @@
                                                                         <span class="fs-12">{{translate('variant')}} : {{ $cartItem['variant'] }}</span>
                                                                     </div>
                                                                 @endif
-
-                                                                @foreach(json_decode($cartItem['variations'],true) as $key1 =>$variation)
-                                                                    <div class="fs-12">{{$key1}} : {{$variation}}</div>
-                                                                @endforeach
                                                                 <div class="fs-12 text-capitalize">{{ translate('unit_price') }}
                                                                     : {{ webCurrencyConverter($cartItem['price']) }}</div>
 
@@ -334,7 +330,7 @@
                                         </tbody>
                                     </table>
 
-                                    @php($free_delivery_status = OrderManager::free_delivery_order_amount($group[0]->cart_group_id))
+                                    @php($free_delivery_status = OrderManager::getFreeDeliveryOrderAmountArray($group[0]->cart_group_id))
 
                                     @if ($free_delivery_status['status'] && (session()->missing('coupon_type') || session('coupon_type') !='free_delivery'))
                                         <div class="free-delivery-area px-3 mb-3">
@@ -421,9 +417,6 @@
                                                                 <span class="fs-12">{{translate('variant')}} : {{ $cartItem['variant'] }}</span>
                                                             </div>
                                                         @endif
-                                                        @foreach(json_decode($cartItem['variations'],true) as $key1 =>$variation)
-                                                            <div class="fs-12">{{$key1}} : {{$variation}}</div>
-                                                        @endforeach
                                                         <div class="fs-12 text-capitalize">{{ translate('unit_price') }}
                                                             : {{ webCurrencyConverter($cartItem['price']*$cartItem['quantity']) }}</div>
                                                         <div class="fs-12">{{ translate('discount') }}
@@ -493,7 +486,7 @@
                                         </div>
                                     @endforeach
 
-                                    @php($free_delivery_status = OrderManager::free_delivery_order_amount($group[0]->cart_group_id))
+                                    @php($free_delivery_status = OrderManager::getFreeDeliveryOrderAmountArray($group[0]->cart_group_id))
 
                                     @if ($free_delivery_status['status'] && (session()->missing('coupon_type') || session('coupon_type') !='free_delivery'))
                                         <div class="free-delivery-area px-3 mb-3">

@@ -105,14 +105,31 @@ function ajaxFormRenderChattingMessages() {
                 selectedFiles = [];
                 selectedImages = [];
                 scrollToBottom();
+
+                if (response.errors) {
+                    for (let index = 0; index < response.errors.length; index++) {
+                        toastr.error(response.errors[index].message);
+                    }
+                } else if (response.error) {
+                    toastr.error(response.error);
+                }
             }, complete: function () {
                 $('.circle-progress').hide()
                 $("#message-send-button").removeAttr('disabled');
                 $('[data-bs-toggle="tooltip"]').tooltip()
             },
             error: function (error) {
-                let errorData = JSON.parse(error.responseText);
-                toastr.warning(errorData.message);
+                try {
+                    const errorData = JSON.parse(error.responseText);
+                    if (errorData.message) {
+                        toastr.warning(errorData.message);
+                    } else {
+                        toastr.warning("An unknown error occurred.");
+                    }
+                } catch (e) {
+                    toastr.error("Failed to process the error response.");
+                    console.error("Error parsing response:", e, error);
+                }
             }
         })
     })

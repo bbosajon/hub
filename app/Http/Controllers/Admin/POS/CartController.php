@@ -55,7 +55,9 @@ class CartController extends BaseController
      */
     public function getVariantPrice(Request $request): JsonResponse
     {
-        $product = $this->productRepo->getFirstWhere(params: ['id' => $request['id']], relations: ['digitalVariation']);
+        $product = $this->productRepo->getFirstWhere(params: ['id' => $request['id']], relations: ['digitalVariation', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }]);
         $colorName = $this->colorRepo->getFirstWhere(['code' => $request['color']])->name ?? null;
         $data = $this->cartService->getVariantData(
             request: $request, product: $product, colorName: $colorName
@@ -71,7 +73,9 @@ class CartController extends BaseController
     {
         $cartId = session(SessionKey::CURRENT_USER);
         if ($request['quantity'] > 0) {
-            $product = $this->productRepo->getFirstWhere(params: ['id' => $request['key']]);
+            $product = $this->productRepo->getFirstWhere(params: ['id' => $request['key']], relations: ['clearanceSale' => function ($query) {
+                return $query->active();
+            }]);
             $quantity = $this->cartService->getQuantityAndUpdateTime(request: $request, product: $product);
             $cartItems = $this->getCartData(cartName: $cartId);
             if ($product['product_type'] == 'physical' && $quantity < 0) {
@@ -98,7 +102,9 @@ class CartController extends BaseController
     public function addToCart(Request $request): JsonResponse
     {
         $cartId = session(SessionKey::CURRENT_USER);
-        $product = $this->productRepo->getFirstWhere(params: ['id' => $request['id']], relations: ['digitalVariation']);
+        $product = $this->productRepo->getFirstWhere(params: ['id' => $request['id']], relations: ['digitalVariation', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }]);
         $colorName = $this->colorRepo->getFirstWhere(['code' => $request['color']])->name ?? null;
         $variations['color'] = $colorName;
         $variant = $this->cartService->makeVariation(
@@ -116,22 +122,22 @@ class CartController extends BaseController
         foreach (json_decode($product['choice_options']) as $choice) {
             $variations[$choice->title] = $request[$choice->name];
         }
-        $discount = $this->getDiscountAmount(price: $product['unit_price'], discount: $product['discount'], discountType: $product['discount_type']);
         $price = $product['unit_price'];
+        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
         $cartData = session($cartId);
         if ($cartId && session()->has($cartId) && count($cartData) > 0) {
             foreach ($cartData as $key => $cartItem) {
                 if (is_array($cartItem) && $cartItem['id'] == $request['id'] && $cartItem['variant'] == $variant) {
                     if ($variant != null) {
                         $price = $this->cartService->getVariationPrice(variation: json_decode($product['variation']), variant: $variant);
-                        $discount = $this->getDiscountAmount(price: $price, discount: $product['discount'], discountType: $product['discount_type']);
+                        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
                     }
                     if ($product['product_type'] == 'digital' && $request->has('variant_key')) {
                         foreach ($product['digitalVariation'] as $digitalVariation) {
                             if ($digitalVariation['variant_key'] == $request['variant_key']) {
                                 $variant = $digitalVariation['variant_key'];
                                 $price = $digitalVariation['price'];
-                                $discount = $this->getDiscountAmount(price: $price, discount: $product['discount'], discountType: $product['discount_type']);
+                                $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
                             }
                         }
                     }
@@ -168,7 +174,7 @@ class CartController extends BaseController
         }
         if ($variant != null) {
             $price = $this->cartService->getVariationPrice(variation: json_decode($product['variation']), variant: $variant);
-            $discount = $this->getDiscountAmount(price: $price, discount: $product['discount'], discountType: $product['discount_type']);
+            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
         }
 
         if ($product['product_type'] == 'digital' && $request->has('variant_key')) {
@@ -176,7 +182,7 @@ class CartController extends BaseController
                 if ($digitalVariation['variant_key'] == $request['variant_key']) {
                     $variant = $digitalVariation['variant_key'];
                     $price = $digitalVariation['price'];
-                    $discount = $this->getDiscountAmount(price: $price, discount: $product['discount'], discountType: $product['discount_type']);
+                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
                 }
             }
         }
@@ -353,9 +359,11 @@ class CartController extends BaseController
         $cartItemValue = [];
         $subTotalCalculation = [
             'countItem' => 0,
+            'totalQuantity' => 0,
             'taxCalculate' => 0,
             'totalTaxShow' => 0,
             'totalTax' => 0,
+            'totalIncludeTax' => 0,
             'subtotal' => 0,
             'discountOnProduct' => 0,
             'productSubtotal' => 0,
@@ -363,16 +371,28 @@ class CartController extends BaseController
         if (session()->get($cartName)) {
             foreach (session()->get($cartName) as $cartItem) {
                 if (is_array($cartItem)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']]);
-                    $subTotalCalculation = $this->cartService->getCartSubtotalCalculation(
+                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']], relations: ['clearanceSale' => function($query) {
+                        return $query->active();
+                    }]);
+                    $cartSubTotalCalculation = $this->cartService->getCartSubtotalCalculation(
                         product: $product,
                         cartItem: $cartItem,
                         calculation: $subTotalCalculation
                     );
                     if ($cartItem['customerId'] == $customerCartData[$cartName]['customerId']) {
-                        $cartItem['productSubtotal'] = $subTotalCalculation['productSubtotal'];
+                        $cartItem['productSubtotal'] = $cartSubTotalCalculation['productSubtotal'];
                         $subTotalCalculation['customerOnHold'] = $cartItem['customerOnHold'];
                         $cartItemValue[] = $cartItem;
+
+                        $subTotalCalculation['countItem'] += $cartSubTotalCalculation['countItem'];
+                        $subTotalCalculation['totalQuantity'] += $cartSubTotalCalculation['totalQuantity'];
+                        $subTotalCalculation['taxCalculate'] += $cartSubTotalCalculation['taxCalculate'];
+                        $subTotalCalculation['totalTaxShow'] += $cartSubTotalCalculation['totalTaxShow'];
+                        $subTotalCalculation['totalTax'] += $cartSubTotalCalculation['totalTax'];
+                        $subTotalCalculation['totalIncludeTax'] += $cartSubTotalCalculation['totalIncludeTax'];
+                        $subTotalCalculation['productSubtotal'] += $cartSubTotalCalculation['productSubtotal'];
+                        $subTotalCalculation['subtotal'] += $cartSubTotalCalculation['subtotal'];
+                        $subTotalCalculation['discountOnProduct'] += $cartSubTotalCalculation['discountOnProduct'];
                     }
                 }
             }

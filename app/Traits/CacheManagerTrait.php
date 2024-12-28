@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\AnalyticScript;
 use App\Models\Banner;
 use App\Models\BusinessSetting;
 use App\Models\Category;
@@ -17,6 +18,8 @@ use App\Models\RobotsMetaContent;
 use App\Models\Seller;
 use App\Models\ShippingType;
 use App\Models\Shop;
+use App\Models\StockClearanceProduct;
+use App\Models\StockClearanceSetup;
 use App\Models\Tag;
 use App\Utils\BrandManager;
 use App\Utils\ProductManager;
@@ -161,6 +164,9 @@ trait CacheManagerTrait
                         'flashDealProducts' => function ($query) {
                             return $query->with(['flashDeal']);
                         },
+                        'clearanceSale' => function ($query) {
+                            return $query->active();
+                        }
                     ])
                     ->withCount('reviews')
                     ->where('category_id', $data['id']);
@@ -197,6 +203,42 @@ trait CacheManagerTrait
         return Cache::remember(CACHE_FOR_IN_HOUSE_ALL_PRODUCTS, CACHE_FOR_3_HOURS, function () {
             return Product::active()->with(['reviews', 'rating'])->withCount('reviews')->where(['added_by' => 'admin'])->get();
         });
+    }
+
+    public function cacheClearanceSaleSetupTable($shopId)
+    {
+        $config = null;
+        $settings = Cache::remember(CACHE_CLEARANCE_SALE_SETUP_TABLE, CACHE_FOR_3_HOURS, function () {
+            return StockClearanceSetup::all();
+        });
+        $data = $settings?->firstWhere('shop_id', $shopId);
+        return $data ?? $config;
+    }
+
+    public function cacheClearanceSaleProductsCount()
+    {
+        return Cache::remember(CACHE_FOR_CLEARANCE_SALE_PRODUCTS_COUNT, CACHE_FOR_3_HOURS, function () {
+            return StockClearanceProduct::active()->whereHas('product', function ($query) {
+                return $query->active();
+            })->count();
+        });
+    }
+
+    public function cacheHomePageClearanceSaleProducts($dataLimit = 10)
+    {
+        $productIds = StockClearanceProduct::active()->whereHas('setup', function ($query) {
+            $addedBy = getWebConfig(name: 'stock_clearance_vendor_offer_in_homepage') ? ['admin', 'vendor'] : ['admin'];
+            return $query->where('show_in_homepage', 1)->whereIn('setup_by', $addedBy);
+        })->whereHas('product', function ($query) {
+            return $query->active()->with(['reviews', 'rating'])->withCount('reviews');
+        })->with('product', function ($query) {
+            return $query->active();
+        })->pluck('product_id')->toArray();
+
+        $products = Product::active()->with(['reviews', 'rating', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }])->withCount('reviews')->whereIn('id', $productIds);
+        return ProductManager::getPriorityWiseClearanceSaleProductsQuery(query: $products, dataLimit: $dataLimit);
     }
 
     public function cacheRobotsMetaContent(string $page)
@@ -291,14 +333,18 @@ trait CacheManagerTrait
     public function cacheHomePageJustForYouProductList()
     {
         return Cache::remember(CACHE_FOR_HOME_PAGE_JUST_FOR_YOU_PRODUCT_LIST, CACHE_FOR_3_HOURS, function () {
-            return Product::active()->inRandomOrder()->take(8)->get();
+            return Product::active()->with(['clearanceSale' => function($query) {
+                return $query->active();
+            }])->inRandomOrder()->take(8)->get();
         });
     }
 
     public function cacheHomePageRandomSingleProductItem()
     {
         return Cache::remember(CACHE_FOR_RANDOM_SINGLE_PRODUCT, now()->addMinutes(10), function () {
-            return $this->product->active()->inRandomOrder()->first();
+            return $this->product->active()->with(['clearanceSale' =>function ($query) {
+                return $query->active();
+            }])->inRandomOrder()->first();
         });
     }
 
@@ -316,7 +362,9 @@ trait CacheManagerTrait
     public function cacheTopRatedProductList()
     {
         return Cache::remember(CACHE_FOR_HOME_PAGE_TOP_RATED_PRODUCT_LIST, CACHE_FOR_3_HOURS, function () {
-            return Product::active()->with(['seller.shop'])
+            return Product::active()->with(['seller.shop', 'clearanceSale' =>function ($query) {
+                return $query->active();
+            }])
                 ->whereHas('reviews', function ($query) {
                     return $query->select('product_id', DB::raw('AVG(rating) as average_rating'))->groupBy('product_id');
                 })
@@ -329,7 +377,9 @@ trait CacheManagerTrait
     {
         return Cache::remember(CACHE_FOR_HOME_PAGE_BEST_SELL_PRODUCT_LIST, CACHE_FOR_3_HOURS, function () {
             return Product::active()
-                ->with(['reviews', 'seller.shop'])
+                ->with(['reviews', 'seller.shop', 'clearanceSale' => function ($query) {
+                    return $query->active();
+                }])
                 ->whereHas('orderDetails', function ($query) {
                     $query->select('product_id', DB::raw('COUNT(product_id) as count'))
                         ->groupBy('product_id');
@@ -342,8 +392,9 @@ trait CacheManagerTrait
     public function cacheHomePageLatestProductList()
     {
         return Cache::remember(CACHE_FOR_HOME_PAGE_LATEST_PRODUCT_LIST, CACHE_FOR_3_HOURS, function () {
-            $latestProductsList = Product::active()->with(['seller.shop', 'flashDealProducts.flashDeal'])
-                ->orderBy('id', 'desc')->take(10)->get();
+            $latestProductsList = Product::active()->with(['seller.shop', 'flashDealProducts.flashDeal', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])->orderBy('id', 'desc')->take(10)->get();
             return $this->getUpdateLatestProductWithFlashDeal(latestProducts: $latestProductsList);
         });
     }
@@ -421,6 +472,13 @@ trait CacheManagerTrait
             $inHouseShopInTemporaryClose = $inHouseShopInTemporaryClose['status'] ?? 0;
             Cache::put(IN_HOUSE_SHOP_TEMPORARY_CLOSE_STATUS, $inHouseShopInTemporaryClose, (60 * 24));
         }
+    }
+
+    public function cacheActiveAnalyticScript()
+    {
+        return Cache::remember(CACHE_FOR_ANALYTIC_SCRIPT_ACTIVE_LIST, CACHE_FOR_3_HOURS, function () {
+            return AnalyticScript::where(['is_active' => 1])->get();
+        });
     }
 
     private function getUpdateLatestProductWithFlashDeal($latestProducts)

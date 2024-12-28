@@ -75,7 +75,7 @@
                         </clipPath>
                         </defs>
                     </svg>
-                    @php($cart_mobile=CartManager::get_cart())
+                    @php($cart_mobile=CartManager::getCartListQuery())
                     <span class="count top-0">{{$cart_mobile->count()}}</span>
                 </div>
             </a>

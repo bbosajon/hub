@@ -8666,7 +8666,7 @@ return [
     "you_have_new order" => "You have new order",
     "you_have_new_order" => "You have new order",
     "you_have_not_add_any_products_in_Wishlist " => "You have not add any products in Wishlist ",
-    "you_have_not_any_conversation_yet" => "You have_not any conversation yet",
+    "you_have_not_any_conversation_yet" => "You have not any conversation yet",
     "you_have_not_placed_any__order_yet" => "You have not placed any  order yet",
     "you_have_saved" => "You have saved",
     "you_have_switched_theme_successfully" => "You have switched theme successfully",

@@ -36,8 +36,13 @@ class CartController extends Controller
     {
         $user = Helpers::getCustomerInformation($request);
         $cart = Cart::whereHas('product', function ($query) {
-            return $query->active();
-        })->with('product', 'shop')
+                return $query->active();
+            })
+            ->with(['shop', 'product' => function ($query) {
+                return $query->with(['clearanceSale' => function ($query) {
+                    return $query->active();
+                }]);
+            }])
             ->when($user == 'offline', function ($query) use ($request) {
                 return $query->where(['customer_id' => $request->guest_id, 'is_guest' => 1]);
             })
@@ -69,7 +74,7 @@ class CartController extends Controller
 
                 $cart_group = Cart::where(['product_type' => 'physical'])->where('cart_group_id', $data['cart_group_id'])->get()->groupBy('cart_group_id');
                 if (isset($cart_group[$data['cart_group_id']])) {
-                    $data['free_delivery_order_amount'] = OrderManager::free_delivery_order_amount($data['cart_group_id']);
+                    $data['free_delivery_order_amount'] = OrderManager::getFreeDeliveryOrderAmountArray($data['cart_group_id']);
                 } else {
                     $data['free_delivery_order_amount'] = [
                         'status' => 0,
@@ -88,6 +93,8 @@ class CartController extends Controller
                         }
                     }
                 }
+
+                $data['discount'] = getProductPriceByType(product: $data['product'], type: 'discounted_amount', result: 'value', price: $data['price']);
                 unset($data['product']['variation']);
                 return $data;
             });

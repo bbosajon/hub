@@ -14,14 +14,10 @@
                                 <div class="position-relative">
                                     <img class="__rounded-top aspect-1 h-auto" alt=""
                                          src="{{ getStorageImages(path: $dealOfTheDay?->product?->thumbnail_full_url, type: 'product') }}">
-                                    @if($dealOfTheDay->discount > 0)
+                                    @if(getProductPriceByType(product: $dealOfTheDay?->product, type: 'discount', result: 'value') > 0)
                                         <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
                                             <span class="direction-ltr d-block">
-                                                @if ($dealOfTheDay->discount_type == 'percent')
-                                                    -{{round($dealOfTheDay->discount,(!empty($decimal_point_settings) ? $decimal_point_settings: 0))}}%
-                                                @elseif($dealOfTheDay->discount_type =='flat')
-                                                    -{{ webCurrencyConverter(amount: $dealOfTheDay->discount) }}
-                                                @endif
+                                                -{{ getProductPriceByType(product: $dealOfTheDay?->product, type: 'discount', result: 'string') }}
                                             </span>
                                         </span>
                                     @endif
@@ -51,6 +47,15 @@
                                     </h6>
                                     <div class="mb-4 pt-1 d-flex flex-wrap justify-content-center align-items-center text-center gap-8">
 
+<<<<<<< HEAD
+                                        @if(getProductPriceByType(product: $dealOfTheDay?->product, type: 'discount', result: 'value') > 0)
+                                            <del class="fs-14 font-semibold __color-9B9B9B">
+                                                {{ webCurrencyConverter(amount: $dealOfTheDay?->product?->unit_price) }}
+                                            </del>
+                                        @endif
+                                        <span class="text-accent fs-18 font-bold text-dark">
+                                            {{ getProductPriceByType(product: $dealOfTheDay?->product, type: 'discounted_unit_price', result: 'string') }}
+=======
                                         @if($dealOfTheDay->product->discount > 0)
                                             <del class="fs-14 font-semibold __color-9B9B9B">
                                                 {{ webCurrencyConverter(amount: $dealOfTheDay->product->unit_price) }}
@@ -60,6 +65,7 @@
                                             {{ webCurrencyConverter(amount:
                                                 $dealOfTheDay->product->unit_price-(getProductDiscount(product: $dealOfTheDay->product, price: $dealOfTheDay->product->unit_price))
                                             ) }}
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                                         </span>
                                     </div>
                                     <button class="btn btn--primary font-bold px-4 rounded-10 text-uppercase get-view-by-onclick"

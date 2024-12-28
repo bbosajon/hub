@@ -1,7 +1,9 @@
 <span id="update_nav_cart_url" data-url="{{route('cart.nav-cart')}}"></span>
 <span id="remove_from_cart_url" data-url="{{ route('cart.remove') }}"></span>
 <span id="update-quantity-basic-url" data-url="{{route('cart.updateQuantity')}}"></span>
-<span id="checkout_details_url" data-url="{{ route('checkout-details') }}"></span>
+<span id="route-cart-variant-price" data-url="{{ route('cart.variant_price') }}"></span>
+<span id="route-checkout-details" data-url="{{ route('checkout-details') }}"></span>
+<span id="route-checkout-payment" data-url="{{ route('checkout-payment') }}"></span>
 <span id="order_note_url" data-url="{{ route('order_note') }}"></span>
 <span id="update_quantity_url" data-url="{{route('cart.updateQuantity.guest')}}"></span>
 <span id="get-place-holder-image" data-src="{{ theme_asset('assets/img/image-place-holder.png') }}"></span>

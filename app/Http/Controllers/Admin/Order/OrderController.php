@@ -256,8 +256,9 @@ class OrderController extends BaseController
         if ($order) {
             $physicalProduct = false;
             if (isset($order->details)) {
-                foreach ($order->details as $product) {
-                    if (isset($product->product) && $product->product->product_type == 'physical') {
+                foreach ($order->details as $orderDetail) {
+                    $orderDetailProduct = json_decode($orderDetail?->product_details, true);
+                    if ($orderDetailProduct && $orderDetailProduct['product_type'] == 'physical') {
                         $physicalProduct = true;
                     }
                 }
@@ -326,7 +327,7 @@ class OrderController extends BaseController
         $this->orderRepo->updateStockOnOrderStatusChange($request['id'], $request['order_status']);
         $this->orderRepo->update(id: $request['id'], data: ['order_status' => $request['order_status']]);
         if ($request['order_status'] == 'delivered') {
-            $this->orderRepo->update(id: $request['id'], data: ['payment_status' => 'paid']);
+            $this->orderRepo->update(id: $request['id'], data: ['payment_status' => 'paid', 'is_pause' => 0]);
             $this->orderDetailRepo->updateWhere(params: ['order_id' => $order['id']], data: ['delivery_status' => $request['order_status'], 'payment_status' => 'paid']);
         }
         event(new OrderStatusEvent(key: $request['order_status'], type: 'customer', order: $order));

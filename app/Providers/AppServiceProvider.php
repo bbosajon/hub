@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\FlashDealProduct;
 use App\Models\LoginSetup;
+use App\Models\StockClearanceProduct;
 use App\Traits\CacheManagerTrait;
 use App\Traits\FileManagerTrait;
 use App\Traits\UpdateClass;
@@ -120,7 +121,9 @@ class AppServiceProvider extends ServiceProvider
                             ->whereDate('end_date', '>=', date('Y-m-d'))->pluck('id')->first();
                         $featuredDealProductIDs = $featuredDealID ? FlashDealProduct::where('flash_deal_id', $featuredDealID)->pluck('product_id')->toArray() : [];
                         $featuredDealList = ProductManager::getPriorityWiseFeatureDealQuery(
-                            query: Product::active()->with(['category'])->whereIn('id', $featuredDealProductIDs),
+                            query: Product::active()->with(['category', 'clearanceSale' => function($query) {
+                                return $query->active();
+                            }])->whereIn('id', $featuredDealProductIDs),
                             dataLimit: 'all'
                         );
 
@@ -147,6 +150,17 @@ class AppServiceProvider extends ServiceProvider
                                 $socialLoginTextShowStatus = true;
                             }
                         }
+                        $totalDiscountProducts = Product::active()
+                            ->withCount('reviews')
+                            ->where(function ($subQuery) {
+                                return $subQuery->where(function ($query) {
+                                    return $query->where('discount', '!=', 0);
+                                })->orWhere(function ($query) {
+                                    $stockClearanceProductIds = StockClearanceProduct::active()->pluck('product_id')->toArray();
+                                    return $query->whereIn('id', $stockClearanceProductIds);
+                                });
+                            })
+                            ->count();
 
                         $web_config += [
                             'cookie_setting' => Helpers::get_settings($web, 'cookie_setting'),
@@ -164,11 +178,11 @@ class AppServiceProvider extends ServiceProvider
                             'cancellation_policy' => getWebConfig(name: 'cancellation-policy'),
                             'shipping_policy' => getWebConfig(name: 'shipping-policy'),
                             'flash_deals' => $flashDeal['flashDeal'],
-                            'flash_deals_products' => $flashDeal['flashDealProducts'],
+                            'flash_deals_products' => $flashDeal['flashDealProducts'] ?? [],
                             'featured_deals' => $featuredDealList,
                             'shops' => $shops,
                             'brand_setting' => getWebConfig(name: 'product_brand'),
-                            'discount_product' => Product::with(['reviews'])->active()->withCount('reviews')->where('discount', '!=', 0)->count(),
+                            'discount_product' => $totalDiscountProducts,
                             'recaptcha' => $recaptcha,
                             'socials_login' => getWebConfig(name: 'social_login'),
                             'social_login_text' => $socialLoginTextShowStatus,
@@ -181,6 +195,8 @@ class AppServiceProvider extends ServiceProvider
                             'customer_phone_verification' => getLoginConfig(key: 'phone_verification'),
                             'customer_email_verification' => getLoginConfig(key: 'email_verification'),
                             'default_meta_content' => $this->cacheRobotsMetaContent(page: 'default'),
+                            'analytic_scripts' => $this->cacheActiveAnalyticScript(),
+                            'clearance_sale_product_count' => $this->cacheClearanceSaleProductsCount(),
                         ];
 
                         if (theme_root_path() == "theme_fashion") {
@@ -191,8 +207,6 @@ class AppServiceProvider extends ServiceProvider
                             ];
 
                             $tags = $this->cacheTagTable();
-
-                            $totalDiscountProducts = Product::active()->withCount('reviews')->where('discount', '!=', '0')->count();
 
                             $web_config += [
                                 'tags' => $tags,

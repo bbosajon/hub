@@ -61,22 +61,22 @@
                                        data-countdown="{{$web_config['flash_deals']?date('m/d/Y',strtotime($web_config['flash_deals']['end_date'])):''}} 23:59:00">
                                      <span class="cz-countdown-days">
                                          <span class="cz-countdown-value"></span>
-                                         <span class="cz-countdown-text">{{ translate('days')}}</span>
+                                         <span class="cz-countdown-text text-nowrap">{{ translate('days')}}</span>
                                      </span>
                                      <span class="cz-countdown-value p-1">:</span>
                                      <span class="cz-countdown-hours">
                                          <span class="cz-countdown-value"></span>
-                                         <span class="cz-countdown-text">{{ translate('hrs')}}</span>
+                                         <span class="cz-countdown-text text-nowrap">{{ translate('hours')}}</span>
                                      </span>
                                      <span class="cz-countdown-value p-1">:</span>
                                      <span class="cz-countdown-minutes">
                                          <span class="cz-countdown-value"></span>
-                                         <span class="cz-countdown-text">{{ translate('min')}}</span>
+                                         <span class="cz-countdown-text text-nowrap">{{ translate('minutes')}}</span>
                                      </span>
                                      <span class="cz-countdown-value p-1">:</span>
                                      <span class="cz-countdown-seconds">
                                          <span class="cz-countdown-value"></span>
-                                         <span class="cz-countdown-text">{{ translate('sec')}}</span>
+                                         <span class="cz-countdown-text text-nowrap">{{ translate('seconds')}}</span>
                                      </span>
                                  </span>
 

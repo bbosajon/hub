@@ -466,7 +466,7 @@ const TELEPHONE_CODES = [
     ["name" => 'Zimbabwe (+263)', "code" => '263'],
 ];
 
-const SOFTWARE_VERSION = '14.9.1';
+const SOFTWARE_VERSION = '15.0';
 
 const THEME_RATIO = [
     'default' => [
@@ -1160,9 +1160,10 @@ const GATEWAYS_LANGUAGES = [
 const CACHE_FOR_3_HOURS = 60 * 60 * 3;
 
 const CACHE_BUSINESS_SETTINGS_TABLE = 'cache_business_settings_table';
+const CACHE_CLEARANCE_SALE_SETUP_TABLE = 'cache_clearance_sale_setup_table';
+const CACHE_ROBOTS_META_CONTENT_TABLE = 'Cache_robots_meta_content_table';
 const CACHE_LOGIN_SETUP_TABLE = 'cache_login_setup_table';
 const CACHE_BANNER_TABLE = 'cache_banner_table';
-const CACHE_ROBOTS_META_CONTENT_TABLE = 'Cache_robots_meta_content_table';
 const CACHE_SHOP_TABLE = 'cache_shops_table';
 const CACHE_TAGS_TABLE = 'cache_tags_table';
 const CACHE_HELP_TOPICS_TABLE = 'cache_help_topics_table';
@@ -1178,6 +1179,7 @@ const CACHE_FOR_IN_HOUSE_ALL_PRODUCTS = 'cache_for_in_house_all_products';
 const CACHE_FOR_HOME_PAGE_TOP_VENDORS_LIST = 'cache_for_home_page_top_vendors_list';
 const CACHE_FOR_HOME_PAGE_MORE_VENDORS_LIST = 'cache_for_home_page_more_vendors_list';
 const CACHE_FLASH_DEAL_KEYS = 'cache_flash_deal_keys';
+const CACHE_FOR_CLEARANCE_SALE_PRODUCTS_COUNT = 'cache_for_clearance_sale_products_count';
 const CACHE_ACTIVE_BRANDS_WITH_COUNTING_AND_PRIORITY = 'active_brands_with_counting_and_priority';
 const CACHE_FOR_MOST_DEMANDED_PRODUCT_ITEM = 'cache_for_most_demanded_product_item';
 const CACHE_FOR_BEST_SELLING_PRODUCT_ITEM = 'cache_for_most_demanded_product_item';

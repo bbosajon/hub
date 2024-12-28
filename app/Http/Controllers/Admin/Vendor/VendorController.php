@@ -10,6 +10,8 @@ use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Contracts\Repositories\ReviewRepositoryInterface;
 use App\Contracts\Repositories\ShippingAddressRepositoryInterface;
 use App\Contracts\Repositories\ShopRepositoryInterface;
+use App\Contracts\Repositories\StockClearanceProductRepositoryInterface;
+use App\Contracts\Repositories\StockClearanceSetupRepositoryInterface;
 use App\Contracts\Repositories\VendorRepositoryInterface;
 use App\Contracts\Repositories\VendorWalletRepositoryInterface;
 use App\Contracts\Repositories\WithdrawRequestRepositoryInterface;
@@ -59,6 +61,8 @@ class VendorController extends BaseController
         private readonly ShopRepositoryInterface             $shopRepo,
         private readonly VendorService                       $vendorService,
         private readonly ShopService                         $shopService,
+        private readonly StockClearanceProductRepositoryInterface $stockClearanceProductRepo,
+        private readonly StockClearanceSetupRepositoryInterface   $stockClearanceSetupRepo,
     )
     {
     }
@@ -298,7 +302,6 @@ class VendorController extends BaseController
 
     public function getView(Request $request, $id, $tab = null): View|RedirectResponse
     {
-
         $seller = $this->vendorRepo->getFirstWhere(
             params: ['id' => $id, 'withCount' => ['product', 'orders' => function ($query) use ($id) {
                 $query->where(['seller_id' => $id, 'seller_is' => ($id == 0 ? 'admin' : 'seller')]);
@@ -354,6 +357,8 @@ class VendorController extends BaseController
             return $this->getTransactionListTabView(request: $request, seller: $seller);
         } else if ($tab == 'review') {
             return $this->getReviewListTabView(request: $request, seller: $seller);
+        } else if ($tab == 'clearance_sale') {
+            return $this->getClearanceSaleTabView(request: $request, seller: $seller);
         }
 
         return view(Vendor::VIEW[VIEW], [
@@ -476,6 +481,23 @@ class VendorController extends BaseController
         return view(Vendor::VIEW_REVIEW[VIEW], [
             'seller' => $seller,
             'reviews' => $reviews,
+        ]);
+    }
+
+    public function getClearanceSaleTabView(Request $request, $seller): View
+    {
+        $searchValue = $request['searchValue'] ?? null;
+        $clearanceConfig = $this->stockClearanceSetupRepo->getFirstWhere(params: ['setup_by' => 'vendor', 'user_id' => $seller->id]);
+        $stockClearanceProduct = $this->stockClearanceProductRepo->getListWhere(
+            orderBy: ['id' => 'desc'],
+            searchValue: $searchValue,
+            filters: ['added_by' => 'vendor', 'user_id' => $seller->id],
+            relations: ['product']
+        );
+        return view(Vendor::VIEW_CLEARANCE_SALE[VIEW], [
+            'seller' => $seller,
+            'stockClearanceProduct' => $stockClearanceProduct,
+            'clearanceConfig' => $clearanceConfig,
         ]);
     }
 

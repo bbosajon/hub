@@ -31,7 +31,9 @@ class DealController extends Controller
                 ->pluck('product_id')->toArray();
         }
 
-        $products = Product::with(['rating', 'tags'])
+        $products = Product::with(['rating', 'tags', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
             ->withCount(['reviews', 'wishList' => function ($query) use ($user) {
                 $query->where('customer_id', $user != 'offline' ? $user->id : '0');
             }])

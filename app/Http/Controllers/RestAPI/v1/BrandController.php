@@ -16,7 +16,6 @@ class BrandController extends Controller
     public function get_brands(Request $request)
     {
         if ($request->has('seller_id') && $request['seller_id'] != null) {
-            //finding brand ids
             $brand_ids = Product::active()
                 ->when($request->has('seller_id') && $request['seller_id'] != null && $request['seller_id'] != 0, function ($query) use ($request) {
                     return $query->where(['added_by' => 'seller'])

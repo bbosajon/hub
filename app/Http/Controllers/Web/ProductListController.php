@@ -4,40 +4,25 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\Author;
 use App\Models\BusinessSetting;
-use App\Models\DigitalProductAuthor;
-use App\Models\DigitalProductPublishingHouse;
 use App\Models\PublishingHouse;
 use App\Utils\BrandManager;
 use App\Utils\CategoryManager;
-use App\Utils\Helpers;
 use App\Http\Controllers\Controller;
-use App\Models\OrderDetail;
-use App\Models\Review;
-use App\Models\Shop;
 use App\Models\Brand;
 use App\Models\Category;
-use App\Models\FlashDeal;
-use App\Models\FlashDealProduct;
-use App\Models\Product;
-use App\Models\Translation;
-use App\Models\Wishlist;
 use App\Utils\ProductManager;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Redirector;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ProductListController extends Controller
 {
 
     public function products(Request $request)
-    {
+    {;
         $themeName = theme_root_path();
 
         return match ($themeName) {
@@ -65,10 +50,8 @@ class ProductListController extends Controller
                 return redirect('/');
             }
         }
-
         $productListData = ProductManager::getProductListData(request: $request);
         $products = $productListData->paginate(20)->appends($data);
-
         if ($request->ajax()) {
             return response()->json([
                 'total_product' => $products->total(),
@@ -143,6 +126,7 @@ class ProductListController extends Controller
         $categories = CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting();
         $activeBrands = BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting();
         $banner = BusinessSetting::where(['type' => 'banner_product_list_page'])->whereJsonContains('value', ['status' => '1'])->first();
+        $singlePageProductCount = 25;
 
         $data = self::getProductListRequestData(request: $request);
         if ($request['data_from'] == 'brand') {
@@ -174,8 +158,8 @@ class ProductListController extends Controller
         }
 
         $productListData = ProductManager::getProductListData(request: $request);
-        $products = $productListData->paginate(25)->appends($data);
-        $paginate_count = ceil(($products->total() / 25));
+        $products = $productListData->paginate($singlePageProductCount)->appends($data);
+        $paginate_count = ceil(($products->total() / $singlePageProductCount));
         $getProductIds = $products->pluck('id')->toArray();
 
         if ($request['ratings'] != null) {
@@ -185,7 +169,7 @@ class ProductListController extends Controller
             });
             $products = $products->where('rating', '>=', $request['ratings'])
                 ->where('rating', '<', $request['ratings'] + 1)
-                ->paginate(25)->appends($data);
+                ->paginate($singlePageProductCount)->appends($data);
         }
 
         $allProductsColorList = ProductManager::getProductsColorsArray();
@@ -197,6 +181,7 @@ class ProductListController extends Controller
                     'products' => $products,
                     'product_ids' => $getProductIds,
                     'paginate_count' => $paginate_count,
+                    'singlePageProductCount' => $singlePageProductCount,
                 ])->render(),
             ], 200);
         }
@@ -213,6 +198,7 @@ class ProductListController extends Controller
             'banner' => $banner,
             'product_ids' => $getProductIds,
             'paginate_count' => $paginate_count,
+            'singlePageProductCount' => $singlePageProductCount,
             'data' => $data
         ]);
     }
@@ -256,6 +242,7 @@ class ProductListController extends Controller
             'brand_id' => $request['brand_id'],
             'category_id' => $request['category_id'],
             'data_from' => $request['data_from'],
+            'offer_type' => $request['offer_type'],
             'sort_by' => $request['sort_by'],
             'page_no' => $request['page'],
             'min_price' => $request['min_price'],
@@ -266,6 +253,7 @@ class ProductListController extends Controller
             'publishing_house_id' => $request['publishing_house_id'],
             'search_category_value' => $request['search_category_value'],
             'product_name' => $request['product_name'],
+            'page' => $request['page'] ?? 1,
         ];
     }
 }

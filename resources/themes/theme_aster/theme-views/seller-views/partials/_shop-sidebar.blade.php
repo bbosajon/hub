@@ -69,7 +69,7 @@
             @foreach($categories as $category)
                 <li>
                     <div class="d-flex justify-content-between">
-                        <a href="{{route('shopView', ['id'=> $seller_id, 'category_id' => $category['id'], 'data_from' => 'category', 'page' => 1])}}">
+                        <a href="{{route('shopView', ['id'=> $seller_id, 'category_id' => $category['id'], 'data_from' => 'category', 'offer_type' => request('offer_type') ?? '', 'page' => 1])}}">
                             {{ $category['name']}}
                         </a>
                         @if ($category->childes->count() > 0)
@@ -83,7 +83,7 @@
                             @foreach($category->childes as $child)
                                 <li>
                                     <div class="d-flex justify-content-between">
-                                        <a href="{{route('shopView',['id'=> $seller_id, 'sub_category_id' => $child['id'], 'data_from' => 'category', 'page' => 1])}}">
+                                        <a href="{{route('shopView',['id'=> $seller_id, 'sub_category_id' => $child['id'], 'data_from' => 'category', 'offer_type' => request('offer_type') ?? '', 'page' => 1])}}">
                                             {{ $child['name'] }}
                                         </a>
                                         @if ($child->childes->count() > 0)
@@ -98,7 +98,7 @@
                                             @foreach($child->childes as $ch)
                                                 <li>
                                                     <label class="custom-checkbox">
-                                                        <a href="{{ route('shopView', ['id' => $seller_id, 'sub_sub_category_id' => $ch['id'], 'data_from' => 'category', 'page' => 1])}}">
+                                                        <a href="{{ route('shopView', ['id' => $seller_id, 'sub_sub_category_id' => $ch['id'], 'data_from' => 'category', 'offer_type' => request('offer_type') ?? '', 'page' => 1])}}">
                                                             {{ $ch['name'] }}
                                                         </a>
                                                     </label>
@@ -133,7 +133,7 @@
                     <li>
                         <div class="flex-between-gap-3 align-items-center">
                             <label class="custom-checkbox">
-                                <a href="{{route('shopView',['id'=> $seller_id, 'brand_id' => $brand->id, 'data_from' => 'brand', 'page' => 1])}}">{{ $brand['name'] }}</a>
+                                <a href="{{route('shopView',['id'=> $seller_id, 'brand_id' => $brand->id, 'data_from' => 'brand', 'offer_type' => request('offer_type') ?? '', 'page' => 1])}}">{{ $brand['name'] }}</a>
                             </label>
                             <span class="badge bg-badge rounded-pill text-dark">
                                 {{ $brand['brand_products_count'] }}
@@ -163,7 +163,7 @@
                     <li>
                         <div class="flex-between-gap-3 align-items-center">
                             <label class="custom-checkbox">
-                                <a href="{{ route('shopView', ['id'=> $seller_id, 'publishing_house_id' => $publishingHouseItem['id'], 'product_type' => 'digital', 'page' => 1]) }}">
+                                <a href="{{ route('shopView', ['id'=> $seller_id, 'publishing_house_id' => $publishingHouseItem['id'], 'product_type' => 'digital', 'offer_type' => request('offer_type') ?? '', 'page' => 1]) }}">
                                     {{ $publishingHouseItem['name'] }}
                                 </a>
                             </label>
@@ -197,7 +197,7 @@
                     <li>
                         <div class="flex-between-gap-3 align-items-center">
                             <label class="custom-checkbox">
-                                <a href="{{ route('shopView', ['id'=> $seller_id, 'author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}">
+                                <a href="{{ route('shopView', ['id'=> $seller_id, 'author_id' => $productAuthor['id'], 'product_type' => 'digital','offer_type' => request('offer_type') ?? '', 'page' => 1]) }}">
                                     {{ $productAuthor['name'] }}
                                 </a>
                             </label>

@@ -95,7 +95,7 @@
                                                 <td class="text-center">
                                                     @if($restockProduct?->product?->discount > 0)
                                                         <div class="text-dark">
-                                                            {{ webCurrencyConverter(amount: $productPrices - getProductDiscount(product:  $restockProduct?->product, price: $productPrices)) }}
+                                                            {{ getProductPriceByType(product: $restockProduct?->product, type: 'discounted_unit_price', result: 'string', price: $productPrices) }}
                                                         </div>
                                                         <div class="text-muted fs-12">
                                                             <del>

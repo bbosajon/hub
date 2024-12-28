@@ -2,14 +2,10 @@
 <div class="product-single-hover shadow-none rtl">
     <div class="overflow-hidden position-relative">
         <div class="inline_product clickable">
-            @if($product->discount > 0)
+            @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                 <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
                     <span class="direction-ltr d-block">
-                        @if ($product->discount_type == 'percent')
-                            -{{round($product->discount,(!empty($decimal_point_settings) ? $decimal_point_settings: 0))}}%
-                        @elseif($product->discount_type =='flat')
-                            -{{ webCurrencyConverter(amount: $product->discount) }}
-                        @endif
+                       -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                     </span>
                 </span>
             @else
@@ -52,15 +48,23 @@
             </div>
             <div class="justify-content-between">
                 <div class="product-price">
+<<<<<<< HEAD
+                    @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+=======
                     @if($product->discount > 0)
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                         <del class="category-single-product-price">
                             {{ webCurrencyConverter(amount: $product->unit_price) }}
                         </del>
                     @endif
                     <span class="text-accent text-dark">
+<<<<<<< HEAD
+                       {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
+=======
                         {{ webCurrencyConverter(amount:
                             $product->unit_price-(getProductDiscount(product: $product, price: $product->unit_price))
                         ) }}
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                     </span>
                 </div>
             </div>

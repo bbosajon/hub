@@ -356,6 +356,19 @@
                                     class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('coupons')}}</span>
                             </a>
                         </li>
+
+                        <li class="navbar-vertical-aside-has-menu {{Request::is('vendor/clearance-sale*')?'active':''}}">
+                            <a class="nav-link"
+                               href="{{ route('vendor.clearance-sale.index') }}" title="{{translate('Clearance_Sale')}}">
+                                <i class="tio-notice nav-icon"></i>
+                                <span
+                                    class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                    {{ translate('Clearance_Sale') }}
+                                </span>
+                            </a>
+                        </li>
+
+
                         <li class="nav-item">
                             <small class="nav-subtitle">{{translate('help_&_support')}}</small>
                             <small class="tio-more-horizontal nav-subtitle-replacer"></small>

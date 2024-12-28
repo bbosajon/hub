@@ -17,9 +17,6 @@
     <link rel="stylesheet" media="screen" href="{{theme_asset(path: 'public/assets/front-end/css/slick.css')}}">
     <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/back-end/css/toastr.css')}}"/>
     <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/master.css')}}"/>
-  	<meta name="google-adsense-account" content="ca-pub-3425835954136330">
-  	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3425835954136330"
-     crossorigin="anonymous"></script>
 </head>
 <body class="toolbar-enabled">
 <div class="container">

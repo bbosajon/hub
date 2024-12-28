@@ -153,6 +153,88 @@
 
                 <div class="col-lg-7">
                     <div class="product-details-content position-relative product-cart-option-container">
+<<<<<<< HEAD
+
+                        <form class="cart add-to-cart-details-form addToCartDynamicForm" action="{{ route('cart.add') }}"
+                              data-errormessage="{{translate('please_choose_all_the_options')}}"
+                              data-outofstock="{{translate('sorry_out_of_stock').'.'}}">
+                            @csrf
+
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                <h2 class="product_title">{{$product['name']}}</h2>
+                                <span class="discounted-badge-element">
+                                    @if ($product->discount > 0 && $product->discount_type === "percent")
+                                        <span class="product__save-amount discounted_badge">
+                                        {{translate('save')}} {{$product->discount}}%
+                                    </span>
+                                    @elseif($product->discount > 0)
+                                        <span class="product__save-amount discounted_badge">
+                                        {{translate('save')}} {{webCurrencyConverter($product->discount)}}
+                                    </span>
+                                    @endif
+                                </span>
+                            </div>
+
+                            <div class="d-flex gap-2 align-items-center mb-2">
+                                <div class="star-rating text-gold fs-12">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        @if ($i <= (int)$overallRating[0])
+                                            <i class="bi bi-star-fill"></i>
+                                        @elseif ($overallRating[0] != 0 && $i <= (int)$overallRating[0] + 1.1 && $overallRating[0] == ((int)$overallRating[0]+.50))
+                                            <i class="bi bi-star-half"></i>
+                                        @else
+                                            <i class="bi bi-star"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <span>({{ count($product->reviews) }})</span>
+                            </div>
+
+                            @if(($product['product_type'] == 'physical') && ($product['current_stock']<=0))
+                                <p class="fw-semibold text-muted">{{translate('out_of_stock')}}</p>
+                            @else
+                                @if($product['product_type'] === 'physical')
+                                    <p class="fw-semibold text-muted">
+                                        <span class="product-details-stock-qty">{{$product->current_stock}}</span>
+                                        {{translate('in_Stock')}}
+                                    </p>
+                                @endif
+                            @endif
+
+                            @if($product['product_type'] == 'digital')
+                                <div class="digital-product-authors mb-2">
+                                    @if(count($productPublishingHouseInfo['data']) > 0)
+                                        <div class="d-flex align-items-center g-2 me-2">
+                                            <span class="text-capitalize digital-product-author-title">{{ translate('Publishing_House') }} :</span>
+                                            <div class="item-list">
+                                                @foreach($productPublishingHouseInfo['data'] as $publishingHouseName)
+                                                    <a href="{{ route('products', ['publishing_house_id' => $publishingHouseName['id'], 'product_type' => 'digital', 'page'=>1]) }}"
+                                                       class="text-base">
+                                                        {{ $publishingHouseName['name'] }}
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if(count($productAuthorsInfo['data']) > 0)
+                                        <div class="d-flex align-items-center g-2 me-2">
+                                            <span class="text-capitalize digital-product-author-title">{{ translate('Author') }} :</span>
+                                            <div class="item-list">
+                                                @foreach($productAuthorsInfo['data'] as $productAuthor)
+                                                    <a href="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}"
+                                                       class="text-base">
+                                                        {{ $productAuthor['name'] }}
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
+                            <div class="product__price d-flex flex-wrap align-items-end gap-2 mb-4 ">
+=======
                         <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                             <h2 class="product_title">{{$product['name']}}</h2>
                             @if ($product->discount > 0 && $product->discount_type === "percent")
@@ -220,16 +302,21 @@
                         @endif
 
                         <div class="product__price d-flex flex-wrap align-items-end gap-2 mb-4 ">
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                             <div class="text-primary fs-1-5rem d-flex align-items-end gap-2">
                                 {!! getPriceRangeWithDiscount(product: $product) !!}
                             </div>
                         </div>
+<<<<<<< HEAD
+
+=======
                         <form class="cart add-to-cart-form addToCartDynamicForm" id="add-to-cart-form" action="{{ route('cart.add') }}"
                               data-redirecturl="{{route('checkout-details')}}"
                               data-varianturl="{{ route('cart.variant_price') }}"
                               data-errormessage="{{translate('please_choose_all_the_options')}}"
                               data-outofstock="{{translate('sorry_out_of_stock').'.'}}">
                             @csrf
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                             <div class="">
                                 <input type="hidden" name="id" value="{{ $product->id }}">
                                 @if (count(json_decode($product->colors)) > 0)
@@ -322,12 +409,28 @@
                                     </div>
                                 </div>
                                 <input type="hidden" class="product-generated-variation-code" name="product_variation_code" data-product-id="{{ $product['id'] }}">
+<<<<<<< HEAD
+                                <input type="hidden" value="" class="product-exist-in-cart-list form-control w-50" name="key">
+=======
                                 <input type="hidden" value="" class="in_cart_key form-control w-50" name="key">
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
 
                                 <div class="bg-light mx-w rounded p-4">
                                     <div class="flex-between-gap-3">
                                         <div class="">
                                             <h6 class="flex-middle-gap-2 mb-2">
+<<<<<<< HEAD
+                                                <span class="text-muted">{{ translate('total_price').':' }}</span>
+                                                <span class="product-details-chosen-price-amount">
+                                                    {{ webCurrencyConverter($product->unit_price) }}
+                                                </span>
+                                            </h6>
+                                            <h6 class="flex-middle-gap-2">
+                                                <span class="text-muted">{{ translate('tax').':' }}</span>
+                                                <span class="product-details-tax-amount">
+                                                    {{ webCurrencyConverter($product->tax) }}
+                                                </span>
+=======
                                                 <span class="text-muted">{{translate('total_price').':'}}</span>
                                                 <span
                                                     class="total_price">{{webCurrencyConverter($product->unit_price)}}</span>
@@ -336,6 +439,7 @@
                                                 <span class="text-muted">{{translate('tax').':'}}</span>
                                                 <span
                                                     class="product_vat">{{webCurrencyConverter($product->tax)}}</span>
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                                             </h6>
                                         </div>
                                     </div>
@@ -351,6 +455,24 @@
                                                 {{translate('add_to_Cart')}}
                                             </button>
                                         @else
+<<<<<<< HEAD
+                                            <button type="button"
+                                                    class="btn btn-secondary fs-16 product-buy-now-button"
+                                                    data-form=".add-to-cart-details-form"
+                                                    data-auth="{{( getWebConfig(name: 'guest_checkout') == 1 || Auth::guard('customer')->check() ? 'true':'false')}}"
+                                                    data-route="{{ route('shop-cart') }}"
+                                            >
+                                                {{translate('buy_now')}}
+                                            </button>
+                                            <button class="btn btn-primary fs-16 text-capitalize product-add-to-cart-button"
+                                                    type="button"
+                                                    data-form=".add-to-cart-details-form"
+                                                    data-update="{{ translate('update_cart') }}"
+                                                    data-add="{{ translate('add_to_cart') }}"
+                                            >
+                                                {{translate('add_to_cart')}}
+                                            </button>
+=======
                                             @php($guest_checkout=getWebConfig(name: 'guest_checkout'))
                                             <button type="button"
                                                     class="btn btn-secondary fs-16 buy-now"
@@ -364,6 +486,7 @@
                                                     class="btn btn-primary fs-16 text-capitalize add-to-cart"
                                                     data-form-id="add-to-cart-form" data-update-text="{{ translate('update_cart') }}"
                                                     data-add-text="{{ translate('add_to_cart') }}">{{translate('add_to_cart')}}</button>
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
                                         @endif
                                     </div>
 

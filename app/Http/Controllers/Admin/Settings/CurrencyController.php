@@ -226,6 +226,7 @@ class CurrencyController extends BaseController
             }
         }
         clearWebConfigCacheKeys();
+        cacheRemoveByType(type: 'business_settings');
         session()->forget('usd');
         session()->forget('default');
         session()->forget('system_default_currency_info');

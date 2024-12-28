@@ -11,7 +11,6 @@
 <header class="rtl __inline-10">
     <div class="topbar">
         <div class="container">
-
             <div>
                 <div class="topbar-text dropdown d-md-none ms-auto">
                     <a class="topbar-link direction-ltr" href="tel: {{ $web_config['phone'] }}">
@@ -74,7 +73,6 @@
         </div>
     </div>
 
-
     <div class="navbar-sticky bg-light mobile-head">
         <div class="navbar navbar-expand-md navbar-light">
             <div class="container ">
@@ -89,7 +87,7 @@
                 </a>
                 <a class="navbar-brand d-sm-none"
                    href="{{route('home')}}">
-                    <img class="mobile-logo-img __inline-12"
+                    <img class="mobile-logo-img"
                          src="{{ getStorageImages(path: $web_config['mob_logo'], type: 'logo') }}"
                          alt="{{$web_config['company_name']}}"/>
                 </a>
@@ -177,14 +175,14 @@
                     @else
                         <div class="dropdown">
                             <a class="navbar-tool {{Session::get('direction') === "rtl" ? 'mr-md-3' : 'ml-md-3'}}"
-                               type="button" data-toggle="dropdown" aria-haspopup="true"
+                               type="button" data-toggle="dropdown" aria-haspopup="true" href="#" rel="nofollow"
                                aria-expanded="false">
                                 <div class="navbar-tool-icon-box bg-secondary">
                                     <div class="navbar-tool-icon-box bg-secondary">
                                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none"
                                              xmlns="http://www.w3.org/2000/svg">
                                             <path d="M4.25 4.41675C4.25 6.48425 5.9325 8.16675 8 8.16675C10.0675 8.16675 11.75 6.48425 11.75 4.41675C11.75 2.34925 10.0675 0.666748 8 0.666748C5.9325 0.666748 4.25 2.34925 4.25 4.41675ZM14.6667 16.5001H15.5V15.6667C15.5 12.4509 12.8825 9.83341 9.66667 9.83341H6.33333C3.11667 9.83341 0.5 12.4509 0.5 15.6667V16.5001H14.6667Z"
-                                                  fill="#1B7FED"/>
+                                                  fill="{{ $web_config['primary_color'] ?? '#1B7FED'}}"/>
                                         </svg>
 
                                     </div>
@@ -275,7 +273,7 @@
                                                 <ul class="dropdown-menu text-align-direction">
                                                     @foreach($category['childes'] as $subCategory)
                                                         <li class="dropdown">
-                                                            <a href="{{route('products',['category_id'=> $subCategory['id'],'data_from'=>'category','page'=>1])}}">
+                                                            <a href="{{route('products',['sub_category_id'=> $subCategory['id'],'data_from'=>'category','page'=>1])}}">
                                                                 <span>{{$subCategory['name']}}</span>
                                                             </a>
 
@@ -288,7 +286,7 @@
                                                                     @foreach($subCategory['childes'] as $subSubCategory)
                                                                         <li>
                                                                             <a class="dropdown-item"
-                                                                               href="{{route('products',['category_id'=> $subSubCategory['id'],'data_from'=>'category','page'=>1])}}">{{$subSubCategory['name']}}</a>
+                                                                               href="{{route('products',['sub_sub_category_id'=> $subSubCategory['id'],'data_from'=>'category','page'=>1])}}">{{$subSubCategory['name']}}</a>
                                                                         </li>
                                                                     @endforeach
                                                                 </ul>
@@ -351,12 +349,86 @@
                             </li>
                         @endif
 
-                        @if ($web_config['discount_product'] > 0)
-                            <li class="nav-item dropdown {{request()->is('/')?'active':''}}">
+                        @if(
+                            count($web_config['featured_deals']) > 0 &&
+                            !(($web_config['flash_deals'] || count($web_config['flash_deals_products']) > 0) || $web_config['discount_product'] > 0 || $web_config['clearance_sale_product_count'] > 0))
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-capitalize"
+                                   href="{{ route('products',['data_from'=>'featured_deal']) }}">
+                                    {{ translate('featured_Deal')}}
+                                </a>
+                            </li>
+                        @elseif(
+                            ($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0) &&
+                            !(count($web_config['featured_deals']) > 0 || $web_config['discount_product'] > 0 || $web_config['clearance_sale_product_count'] > 0)
+                            )
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-capitalize"
+                                   href="{{ route('flash-deals',[ $web_config['flash_deals']['id'] ?? 0]) }}">
+                                    {{ translate('flash_deal')}}
+                                </a>
+                            </li>
+                        @elseif(
+                            ($web_config['discount_product'] > 0) &&
+                            !(count($web_config['featured_deals']) > 0 || ($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0) || $web_config['clearance_sale_product_count'] > 0)
+                            )
+                            <li class="nav-item dropdown">
                                 <a class="nav-link text-capitalize"
                                    href="{{ route('products', ['data_from' => 'discounted', 'page' => 1]) }}">
                                     {{ translate('discounted_products')}}
                                 </a>
+                            </li>
+                        @elseif(
+                            ($web_config['clearance_sale_product_count'] > 0) &&
+                            !(count($web_config['featured_deals']) > 0 || ($web_config['flash_deals'] || count($web_config['flash_deals_products']) > 0) || $web_config['discount_product'] > 0)
+                            )
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-capitalize"
+                                   href="{{ route('products', ['offer_type' => 'clearance_sale', 'page' => 1]) }}">
+                                    {{ translate('clearance_Sale')}}
+                                </a>
+                            </li>
+                        @elseif(count($web_config['featured_deals']) > 0 || ($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0) || $web_config['discount_product'] > 0 || $web_config['clearance_sale_product_count'] > 0)
+                            <li class="nav-item">
+                                <div class="dropdown">
+                                    <button class="btn dropdown-toggle text-white text-max-md-dark text-capitalize ps-2"
+                                            type="button" id="dropdownMenuButton"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ translate('offers')}}
+                                    </button>
+                                    <div class="dropdown-menu __dropdown-menu-3 __min-w-165px text-align-direction"
+                                         aria-labelledby="dropdownMenuButton">
+                                        @if(count($web_config['featured_deals']) > 0)
+                                            <a class="dropdown-item text-nowrap text-capitalize" href="{{ route('products',['data_from'=>'featured_deal']) }}">
+                                                {{ translate('featured_Deal')}}
+                                            </a>
+                                        @endif
+
+                                        @if($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0)
+                                            @if(count($web_config['featured_deals']) > 0)
+                                                <div class="dropdown-divider"></div>
+                                            @endif
+                                            <a class="dropdown-item text-nowrap text-capitalize" href="{{ route('flash-deals',[ $web_config['flash_deals']['id'] ?? 0]) }}">
+                                                {{ translate('flash_deal')}}
+                                            </a>
+                                        @endif
+
+                                        @if($web_config['discount_product'] > 0)
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item text-nowrap text-capitalize" href="{{ route('products', ['data_from' => 'discounted', 'page' => 1]) }}">
+                                                {{ translate('discounted_products')}}
+                                            </a>
+                                        @endif
+
+                                        @if($web_config['clearance_sale_product_count'] > 0)
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item text-nowrap" href="{{ route('products', ['offer_type' => 'clearance_sale', 'page' => 1]) }}">
+                                                {{ translate('clearance_Sale')}}
+                                            </a>
+                                        @endif
+
+                                    </div>
+                                </div>
                             </li>
                         @endif
 
@@ -468,6 +540,7 @@
                             </a>
                         </div>
                     @endif
+{{--                    <button class="btn btn-sm font-weight-bolder btn-primary btn-clearance text-capitalize text-nowrap ml-auto">{{translate('clearance_Sale')}}</button>--}}
                 </div>
             </div>
         </div>
@@ -484,12 +557,12 @@
                                         @foreach ($category->childes as $sub_category)
                                             <div class="mega_menu_inner">
                                                 <h6>
-                                                    <a href="{{route('products',['category_id'=> $sub_category['id'],'data_from'=>'category','page'=>1])}}">{{$sub_category->name}}</a>
+                                                    <a href="{{route('products',['sub_category_id'=> $sub_category['id'],'data_from'=>'category','page'=>1])}}">{{$sub_category->name}}</a>
                                                 </h6>
                                                 @if ($sub_category->childes->count() >0)
                                                     @foreach ($sub_category->childes as $sub_sub_category)
                                                         <div>
-                                                            <a href="{{route('products',['category_id'=> $sub_sub_category['id'],'data_from'=>'category','page'=>1])}}">{{$sub_sub_category->name}}</a>
+                                                            <a href="{{route('products',['sub_sub_category_id'=> $sub_sub_category['id'],'data_from'=>'category','page'=>1])}}">{{$sub_sub_category->name}}</a>
                                                         </div>
                                                     @endforeach
                                                 @endif

@@ -20,6 +20,8 @@ use App\Contracts\Repositories\PublishingHouseRepositoryInterface;
 use App\Contracts\Repositories\RestockProductCustomerRepositoryInterface;
 use App\Contracts\Repositories\RestockProductRepositoryInterface;
 use App\Contracts\Repositories\ReviewRepositoryInterface;
+use App\Contracts\Repositories\StockClearanceProductRepositoryInterface;
+use App\Contracts\Repositories\StockClearanceSetupRepositoryInterface;
 use App\Contracts\Repositories\TranslationRepositoryInterface;
 use App\Contracts\Repositories\VendorRepositoryInterface;
 use App\Contracts\Repositories\WishlistRepositoryInterface;
@@ -66,6 +68,8 @@ class ProductController extends BaseController
         private readonly RestockProductRepositoryInterface          $restockProductRepo,
         private readonly RestockProductCustomerRepositoryInterface  $restockProductCustomerRepo,
         private readonly DigitalProductVariationRepositoryInterface $digitalProductVariationRepo,
+        private readonly StockClearanceProductRepositoryInterface   $stockClearanceProductRepo,
+        private readonly StockClearanceSetupRepositoryInterface     $stockClearanceSetupRepo,
         private readonly ProductSeoRepositoryInterface              $productSeoRepo,
         private readonly VendorRepositoryInterface                  $sellerRepo,
         private readonly ColorRepositoryInterface                   $colorRepo,
@@ -186,7 +190,9 @@ class ProductController extends BaseController
             'sub_sub_category_id' => $request['sub_sub_category_id'],
         ];
 
-        $products = $this->productRepo->getListWhere(orderBy: ['id' => 'desc'], searchValue: $request['searchValue'], filters: $filters, dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT));
+        $products = $this->productRepo->getListWhere(orderBy: ['id' => 'desc'], searchValue: $request['searchValue'], filters: $filters, relations: ['clearanceSale' => function ($query) {
+            return $query->active();
+        }], dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT));
         $sellers = $this->sellerRepo->getByStatusExcept(status: 'pending', relations: ['shop'], paginateBy: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT));
         $brands = $this->brandRepo->getListWhere(filters: ['status' => 1], dataLimit: 'all');
         $categories = $this->categoryRepo->getListWhere(filters: ['position' => 0], dataLimit: 'all');
@@ -198,7 +204,7 @@ class ProductController extends BaseController
 
     public function getUpdateView(string|int $id): View|RedirectResponse
     {
-        $product = $this->productRepo->getFirstWhereWithoutGlobalScope(params: ['id' => $id], relations: ['translations', 'seoInfo', 'digitalProductAuthors.author', 'digitalProductPublishingHouse.publishingHouse']);
+        $product = $this->productRepo->getFirstWhereWithoutGlobalScope(params: ['id' => $id], relations: ['digitalVariation', 'translations', 'seoInfo', 'digitalProductAuthors.author', 'digitalProductPublishingHouse.publishingHouse']);
         if (!$product) {
             Toastr::error(translate('product_not_found') . '!');
             return redirect()->route('admin.products.list', ['in_house']);
@@ -245,9 +251,32 @@ class ProductController extends BaseController
 
         $updatedProduct = $this->productRepo->getFirstWhere(params: ['id' => $product['id']]);
         $this->updateRestockRequestListAndNotify(product: $product, updatedProduct: $updatedProduct);
+        $this->updateStockClearanceProduct(product: $updatedProduct);
 
         Toastr::success(translate('product_updated_successfully'));
         return redirect()->route(Product::VIEW[ROUTE], ['addedBy' => $product['added_by'], 'id' => $product['id']]);
+    }
+
+    public function updateStockClearanceProduct($product): void
+    {
+        $config = $this->stockClearanceSetupRepo->getFirstWhere(params: [
+            'setup_by' => $product['added_by'] == 'admin' ? $product['added_by'] : 'vendor',
+            'shop_id' => $product['added_by'] == 'admin' ? 0 : $product?->seller?->shop?->id,
+        ]);
+        $stockClearanceProduct = $this->stockClearanceProductRepo->getFirstWhere(params: ['product_id' => $product['id']]);
+
+        if ($config && $config['discount_type'] == 'product_wise' && $stockClearanceProduct && $stockClearanceProduct['discount_type'] == 'flat') {
+            $minimumPrice = $product['unit_price'];
+            foreach ((json_decode($product['variation'], true) ?? []) as $variation) {
+                if ($variation['price'] < $minimumPrice) {
+                    $minimumPrice = $variation['price'];
+                }
+            }
+
+            if ($minimumPrice < $stockClearanceProduct['discount_amount']) {
+                $this->stockClearanceProductRepo->updateByParams(params: ['product_id' => $product['id']], data: ['is_active' => 0]);
+            }
+        }
     }
 
     public function getDigitalProductUpdateProcess($request, $product): void
@@ -333,7 +362,9 @@ class ProductController extends BaseController
             return redirect()->route('admin.products.list', ['in_house']);
         }
         $isActive = $this->productRepo->getWebFirstWhereActive(params: ['id' => $id]);
-        $relations = ['category', 'brand', 'reviews', 'rating', 'orderDetails', 'orderDelivered', 'digitalVariation', 'seoInfo'];
+        $relations = ['category', 'brand', 'reviews', 'rating', 'orderDetails', 'orderDelivered', 'digitalVariation', 'seoInfo', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }];
         $product = $this->productRepo->getFirstWhereWithoutGlobalScope(params: ['id' => $id], relations: $relations);
         $product['priceSum'] = $product?->orderDelivered->sum('price');
         $product['qtySum'] = $product?->orderDelivered->sum('qty');

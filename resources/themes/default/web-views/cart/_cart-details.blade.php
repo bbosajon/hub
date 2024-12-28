@@ -1,10 +1,7 @@
 <h3 class="mt-4 mb-3 text-center text-lg-left mobile-fs-20 fs-18 font-bold">{{ translate('shopping_cart')}}</h3>
 
 @php($shippingMethod=getWebConfig(name: 'shipping_method'))
-@php($cart=\App\Models\Cart::whereHas('product', function ($query) {
-                return $query->active();
-            })->where(['customer_id' => (auth('customer')->check() ? auth('customer')->id() : session('guest_id'))])
-            ->get()->groupBy('cart_group_id'))
+@php($cart=\App\Utils\CartManager::getCartListGroupQuery())
 
 <div class="row g-3 mx-max-md-0 mb-3">
     <section class="col-lg-8 px-max-md-0">
@@ -290,18 +287,6 @@
                                                     @endif
                                                 </div>
 
-                                                <div
-                                                    class="d-flex flex-wrap gap-2 {{ $checkProductStatus == 0?'custom-cart-opacity-50':'' }}">
-                                                    @foreach(json_decode($cartItem['variations'], true) as $key1 => $variation)
-                                                        <div class="">
-                                                                <span class="__text-12px text-capitalize">
-                                                                    <span class="text-muted">{{$key1}} </span> : <span
-                                                                        class="fw-semibold">{{$variation}}</span>
-                                                                </span>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-
                                                 @if ($product->product_type == 'physical' && $shipping_type != 'order_wise')
                                                     <div
                                                         class="d-flex flex-wrap gap-2 {{ $checkProductStatus == 0?'custom-cart-opacity-50':'' }}">
@@ -398,7 +383,7 @@
                         </tbody>
                     </table>
 
-                    @php($free_delivery_status = \App\Utils\OrderManager::free_delivery_order_amount($group[0]->cart_group_id))
+                    @php($free_delivery_status = \App\Utils\OrderManager::getFreeDeliveryOrderAmountArray($group[0]->cart_group_id))
                     @if ($free_delivery_status['status'] && (session()->missing('coupon_type') || session('coupon_type') !='free_delivery'))
                         <div class="free-delivery-area px-3 mb-3 mb-lg-2">
                             <div class="d-flex align-items-center gap-8">
@@ -635,17 +620,6 @@
                                             <span class="__text-12px">{{translate('variant')}} : {{$cartItem['variant']}}</span>
                                         </div>
                                     @endif
-
-                                    <div class="d-flex flex-wrap column-gap-2">
-                                        @foreach(json_decode($cartItem['variations'],true) as $key1 =>$variation)
-                                            <div class="">
-                                                <span class="__text-12px text-capitalize">
-                                                <span class="text-muted"> {{$key1}} </span> : <span
-                                                        class="fw-semibold">{{$variation}}</span>
-                                                </span>
-                                            </div>
-                                        @endforeach
-                                    </div>
                                     <div class="d-flex flex-wrap column-gap-2">
                                         <div class="text-nowrap text-muted">{{ translate('unit_price')}} :</div>
                                         <div class="text-start d-flex gap-1 flex-wrap">
@@ -735,7 +709,7 @@
                     </div>
                 @endforeach
 
-                @php($free_delivery_status = \App\Utils\OrderManager::free_delivery_order_amount($group[0]->cart_group_id))
+                @php($free_delivery_status = \App\Utils\OrderManager::getFreeDeliveryOrderAmountArray($group[0]->cart_group_id))
                 @if ($free_delivery_status['status'] && (session()->missing('coupon_type') || session('coupon_type') !='free_delivery'))
                     <div class="free-delivery-area px-3 mb-3 mb-lg-2">
                         <div class="d-flex align-items-center gap-8">

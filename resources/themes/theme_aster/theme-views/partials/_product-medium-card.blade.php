@@ -2,14 +2,10 @@
 @php($overallRating = $product->reviews ? getOverallRating($product->reviews) : 0)
 <div class="product d-flex flex-column gap-10 get-view-by-onclick" data-link="{{route('product',$product->slug)}}">
     <div class="product__top border rounded">
-        @if($product->discount > 0)
+        @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
             <span class="product__discount-badge">
                 <span>
-                    @if ($product->discount_type == 'percent')
-                        {{'-'.' '.round($product->discount, $web_config['decimal_point_settings']).'%'}}
-                    @elseif($product->discount_type =='flat')
-                        {{'-'.' '.webCurrencyConverter($product->discount)}}
-                    @endif
+                    -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                 </span>
             </span>
         @endif
@@ -41,7 +37,7 @@
 
         <div>
             <img src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'product') }}"
-                 loading="lazy" class="img-fit dark-support rounded" alt="">
+                 loading="lazy" class="img-fit dark-support rounded aspect-1" alt="">
         </div>
     </div>
     <div class="product__summary d-flex flex-column gap-1 cursor-pointer">
@@ -73,11 +69,11 @@
         </h6>
 
         <div class="product__price d-flex flex-wrap column-gap-2">
-            @if($product->discount > 0)
+            @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                 <del class="product__old-price">{{webCurrencyConverter($product->unit_price)}}</del>
             @endif
             <ins class="product__new-price">
-                {{webCurrencyConverter($product->unit_price-Helpers::getProductDiscount($product,$product->unit_price))}}
+                {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
             </ins>
         </div>
     </div>

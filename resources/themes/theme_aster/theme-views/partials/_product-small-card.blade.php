@@ -3,14 +3,10 @@
 <div class="product border rounded text-center d-flex flex-column gap-10 get-view-by-onclick"
      data-link="{{route('product',$product->slug)}}">
     <div class="product__top width--100 height-12-5-rem aspect-1">
-        @if($product->discount > 0)
+        @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
             <span class="product__discount-badge">
                 <span>
-                    @if ($product->discount_type == 'percent')
-                        {{'-'.' '.round($product->discount, (!empty($decimal_point_settings) ? $decimal_point_settings: 0)).'%'}}
-                    @elseif($product->discount_type =='flat')
-                        {{'-'.' '.webCurrencyConverter($product->discount)}}
-                    @endif
+                    -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                 </span>
             </span>
         @endif
@@ -72,13 +68,11 @@
         </h6>
         <a href="{{route('product',$product->slug)}}">
             <div class="product__price d-flex flex-wrap column-gap-2">
-                @if($product->discount > 0)
+                @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                     <del class="product__old-price">{{webCurrencyConverter($product->unit_price)}}</del>
                 @endif
                 <ins class="product__new-price">
-                    {{webCurrencyConverter(
-                        $product->unit_price-(Helpers::getProductDiscount($product,$product->unit_price))
-                    )}}
+                    {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
                 </ins>
             </div>
         </a>

@@ -7,6 +7,7 @@
     <meta property="og:image" content="{{$web_config['web_logo']['path']}}"/>
     <meta property="og:title" content="Welcome To {{$web_config['company_name']}} Home"/>
     <meta property="og:url" content="{{env('APP_URL')}}">
+    <meta name="description" content="{{ substr(strip_tags(str_replace('&nbsp;', ' ', $web_config['about']->value)),0,160) }}">
     <meta property="og:description" content="{{ substr(strip_tags(str_replace('&nbsp;', ' ', $web_config['about']->value)),0,160) }}">
 
     <meta property="twitter:card" content="{{$web_config['web_logo']['path']}}"/>
@@ -91,7 +92,9 @@
             </section>
         @endif
 
-        @if (isset($bannerTypeMainSectionBanner))
+        @include('web-views.partials._clearance-sale-products', ['clearanceSaleProducts' => $clearanceSaleProducts])
+
+    @if (isset($bannerTypeMainSectionBanner))
             <div class="container rtl pt-4 px-0 px-md-3">
                 <a href="{{$bannerTypeMainSectionBanner->url}}" target="_blank"
                     class="cursor-pointer d-block">

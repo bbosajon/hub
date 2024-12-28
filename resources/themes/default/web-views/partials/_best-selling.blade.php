@@ -19,15 +19,11 @@
                     @if($bestSellItem && $key<6)
                         <div class="col-sm-6">
                             <a class="__best-selling" href="{{route('product',$bestSellItem->slug)}}">
-                                @if($bestSellItem->discount > 0)
+                                @if(getProductPriceByType(product: $bestSellItem, type: 'discount', result: 'value') > 0)
                                     <div class="d-flex">
                                         <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
                                             <span class="direction-ltr d-block">
-                                                @if ($bestSellItem->discount_type == 'percent')
-                                                    -{{round($bestSellItem->discount)}}%
-                                                @elseif($bestSellItem->discount_type =='flat')
-                                                    -{{ webCurrencyConverter(amount: $bestSellItem->discount) }}
-                                                @endif
+                                                -{{ getProductPriceByType(product: $bestSellItem, type: 'discount', result: 'string') }}
                                             </span>
                                         </span>
                                     </div>
@@ -63,16 +59,14 @@
                                         @endif
                                         <div class="widget-product-meta d-flex flex-wrap gap-8 align-items-center row-gap-0">
                                             <span>
-                                                @if($bestSellItem->discount > 0)
+                                                @if(getProductPriceByType(product: $bestSellItem, type: 'discount', result: 'value') > 0)
                                                     <del class="__color-9B9B9B __text-12px">
                                                         {{ webCurrencyConverter(amount: $bestSellItem->unit_price) }}
                                                     </del>
                                                 @endif
                                             </span>
                                             <span class="text-accent text-dark">
-                                                {{ webCurrencyConverter(amount:
-                                                $bestSellItem->unit_price-(getProductDiscount(product: $bestSellItem, price: $bestSellItem->unit_price))
-                                                ) }}
+                                                {{ getProductPriceByType(product: $bestSellItem, type: 'discounted_unit_price', result: 'string') }}
                                             </span>
                                         </div>
                                     </div>

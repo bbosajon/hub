@@ -929,7 +929,9 @@ class UserProfileController extends Controller
             orderBy: ['updated_at' => 'desc'],
             searchValue: $request['searchValue'],
             filters: ['customer_id' => auth('customer')->id()],
-            relations: ['product'],
+            relations: ['product.clearanceSale' => function ($query) {
+                return $query->active();
+            }],
             dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT),
         );
         $productIdsArray = $restockProducts->pluck('product_id')->toArray();

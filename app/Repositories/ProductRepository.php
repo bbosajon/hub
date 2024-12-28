@@ -111,6 +111,11 @@ class ProductRepository implements ProductRepositoryInterface
                     return $query->with('publishingHouse');
                 });
             })
+            ->when(isset($relations['clearanceSale']), function ($query) use ($relations) {
+                return $query->with(['clearanceSale' => function($query) {
+                    return $query->active();
+                }]);
+            })
             ->when(isset($params['id']), function ($query) use ($params) {
                 return $query->where('id', $params['id']);
             })
@@ -207,8 +212,11 @@ class ProductRepository implements ProductRepositoryInterface
                     ->where('key', 'name')
                     ->where('value', 'like', "%{$searchValue}%")
                     ->pluck('translationable_id');
-                return $query->where('name', 'like', "%{$searchValue}%")
-                    ->orWhereIn('id', $product_ids);
+
+                return $query->where(function ($query) use ($searchValue, $product_ids) {
+                    return $query->where('name', 'like', "%{$searchValue}%")
+                        ->orWhereIn('id', $product_ids);
+                });
             })
             ->when(isset($filters['search_from']) && $filters['search_from'] == 'pos', function ($query) use ($filters) {
                 $searchKeyword = str_ireplace(['\'', '"', ',', ';', '<', '>', '?'], ' ', preg_replace('/\s\s+/', ' ', $filters['keywords']));
@@ -220,7 +228,8 @@ class ProductRepository implements ProductRepositoryInterface
             })
             ->when(isset($filters['added_by']) && $this->isAddedByInHouse(addedBy: $filters['added_by']), function ($query) {
                 return $query->where(['added_by' => 'admin']);
-            })->when(isset($filters['added_by']) && !$this->isAddedByInHouse($filters['added_by']), function ($query) use ($filters) {
+            })
+            ->when(isset($filters['added_by']) && !$this->isAddedByInHouse($filters['added_by']), function ($query) use ($filters) {
                 return $query->where(['added_by' => 'seller'])
                     ->when(isset($filters['request_status']), function ($query) use ($filters) {
                         $query->where(['request_status' => $filters['request_status']]);

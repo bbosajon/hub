@@ -2,8 +2,6 @@
 
 namespace App\Traits;
 
-use Illuminate\Pagination\LengthAwarePaginator;
-
 trait PaymentGatewayTrait
 {
     public function getPaymentGatewaySupportedCurrencies($key = null): array

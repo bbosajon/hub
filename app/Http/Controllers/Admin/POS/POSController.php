@@ -70,6 +70,9 @@ class POSController extends BaseController
                 'code' => $searchValue,
                 'status' => 1,
             ],
+            relations: ['clearanceSale' => function ($query) {
+                return $query->active();
+            }],
             dataLimit: getWebConfig('pagination_limit'),
         );
         $cartId = 'walking-customer-' . rand(10, 1000);
@@ -142,7 +145,9 @@ class POSController extends BaseController
 
             foreach ($cart as $item) {
                 if (is_array($item)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']]);
+                    $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']], relations: ['clearanceSale' => function ($query) {
+                        return $query->active();
+                    }]);
                     $totalProductPrice += $item['price'] * $item['quantity'];
                     $productDiscount += $item['discount'] * $item['quantity'];
                     $productTax += $this->getTaxAmount($item['price'], $product['tax']) * $item['quantity'];
@@ -231,7 +236,9 @@ class POSController extends BaseController
             if ($carts != null) {
                 foreach ($carts as $cart) {
                     if (is_array($cart)) {
-                        $product = $this->productRepo->getFirstWhere(params: ['id' => $cart['id']]);
+                        $product = $this->productRepo->getFirstWhere(params: ['id' => $cart['id']], relations: ['clearanceSale' => function ($query) {
+                            return $query->active();
+                        }]);
                         $totalProductPrice += $cart['price'] * $cart['quantity'];
                         $productDiscount += $cart['discount'] * $cart['quantity'];
                         $productTax += ($this->getTaxAmount($cart['price'], $product['tax'])) * $cart['quantity'];
@@ -287,7 +294,9 @@ class POSController extends BaseController
         $product = $this->productRepo->getFirstWhereWithCount(
             params: ['id' => $request['product_id']],
             withCount: ['reviews'],
-            relations: ['brand', 'category', 'rating', 'tags', 'digitalVariation'],
+            relations: ['brand', 'category', 'rating', 'tags', 'digitalVariation', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }],
         );
         return response()->json([
             'success' => 1,
@@ -347,9 +356,11 @@ class POSController extends BaseController
         $cartItemValue = [];
         $subTotalCalculation = [
             'countItem' => 0,
+            'totalQuantity' => 0,
             'taxCalculate' => 0,
             'totalTaxShow' => 0,
             'totalTax' => 0,
+            'totalIncludeTax' => 0,
             'subtotal' => 0,
             'discountOnProduct' => 0,
             'productSubtotal' => 0,
@@ -357,17 +368,29 @@ class POSController extends BaseController
         if (session()->get($cartName)) {
             foreach (session()->get($cartName) as $cartItem) {
                 if (is_array($cartItem)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']]);
+                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']], relations: ['clearanceSale' => function ($query) {
+                        return $query->active();
+                    }]);
                     if ($product) {
-                        $subTotalCalculation = $this->cartService->getCartSubtotalCalculation(
+                        $cartSubTotalCalculation = $this->cartService->getCartSubtotalCalculation(
                             product: $product,
                             cartItem: $cartItem,
                             calculation: $subTotalCalculation
                         );
                         if ($cartItem['customerId'] == $customerCartData[$cartName]['customerId']) {
-                            $cartItem['productSubtotal'] = $subTotalCalculation['productSubtotal'];
+                            $cartItem['productSubtotal'] = $cartSubTotalCalculation['productSubtotal'];
                             $cartItemValue[] = $cartItem;
                             $subTotalCalculation['customerOnHold'] = $cartItem['customerOnHold'];
+
+                            $subTotalCalculation['countItem'] += $cartSubTotalCalculation['countItem'];
+                            $subTotalCalculation['totalQuantity'] += $cartSubTotalCalculation['totalQuantity'];
+                            $subTotalCalculation['taxCalculate'] += $cartSubTotalCalculation['taxCalculate'];
+                            $subTotalCalculation['totalTaxShow'] += $cartSubTotalCalculation['totalTaxShow'];
+                            $subTotalCalculation['totalTax'] += $cartSubTotalCalculation['totalTax'];
+                            $subTotalCalculation['totalIncludeTax'] += $cartSubTotalCalculation['totalIncludeTax'];
+                            $subTotalCalculation['productSubtotal'] += $cartSubTotalCalculation['productSubtotal'];
+                            $subTotalCalculation['subtotal'] += $cartSubTotalCalculation['subtotal'];
+                            $subTotalCalculation['discountOnProduct'] += $cartSubTotalCalculation['discountOnProduct'];
                         }
                     }
                 }

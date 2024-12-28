@@ -239,9 +239,13 @@
                                         <form method="get" action="{{route('shopView',['id'=>$seller_id])}}">
                                             <div class="d-flex">
                                                 <div class="select-wrap border d-flex align-items-center">
+                                                    <input type="hidden" name="data_from" value="search">
                                                     <input type="search" class="form-control border-0 mx-w300 h-auto"
                                                            name="product_name" value="{{ request('product_name') }}"
                                                            placeholder="{{translate('search_for_items').'...'}}">
+                                                    @if(request()->has('offer_type') && request('offer_type') == 'clearance_sale')
+                                                        <input type="hidden" name="offer_type" value="clearance_sale">
+                                                    @endif
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">
                                                     <i class="bi bi-search"></i>
@@ -262,31 +266,21 @@
                                                     {{translate('default')}}
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end" id="sort-by-list">
-                                                    <li class="sort_by-latest selected" data-value="latest">
-                                                        <a class="d-flex" href="javascript:">
-                                                            {{translate('default')}}
-                                                        </a>
+                                                    <li class="link-hover-base product-list-filter-on-sort-by selected" data-value="latest">
+                                                        {{translate('default')}}
                                                     </li>
 
-                                                    <li class="sort_by-high-low" data-value="high-low">
-                                                        <a class="d-flex" href="javascript:">
-                                                            {{translate('High_to_Low_Price')}}
-                                                        </a>
+                                                    <li class="link-hover-base product-list-filter-on-sort-by" data-value="high-low">
+                                                        {{translate('High_to_Low_Price')}}
                                                     </li>
-                                                    <li class="sort_by-low-high" data-value="low-high">
-                                                        <a class="d-flex" href="javascript:">
-                                                            {{translate('Low_to_High_Price')}}
-                                                        </a>
+                                                    <li class="link-hover-base product-list-filter-on-sort-by" data-value="low-high">
+                                                        {{translate('Low_to_High_Price')}}
                                                     </li>
-                                                    <li class="sort_by-a-z" data-value="a-z">
-                                                        <a class="d-flex" href="javascript:">
-                                                            {{translate('A_to_Z_Order')}}
-                                                        </a>
+                                                    <li class="link-hover-base product-list-filter-on-sort-by" data-value="a-z">
+                                                        {{translate('A_to_Z_Order')}}
                                                     </li>
-                                                    <li class="sort_by-z-a" data-value="z-a">
-                                                        <a class="d-flex" href="javascript:">
-                                                            {{translate('Z_to_A_Order')}}
-                                                        </a>
+                                                    <li class="link-hover-base product-list-filter-on-sort-by" data-value="z-a">
+                                                        {{translate('Z_to_A_Order')}}
                                                     </li>
                                                 </ul>
                                             </div>
@@ -355,35 +349,45 @@
                         </div>
 
                         <div class="card-body d-flex flex-column gap-4">
-                            @include('theme-views.seller-views.partials._shop-sidebar')
+                            @include('theme-views.seller-views.partials._shop-sidebar', ['brands' => $brands])
                         </div>
                     </div>
                     <div class="">
-                        <div
-                            class="d-flex flex-wrap flex-lg-nowrap align-items-start justify-content-between gap-3 mb-2">
-                            <div
-                                class="d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between gap-2 gap-md-3 flex-grow-1">
-                                <button class="toggle-filter square-btn btn btn-outline-primary rounded d-lg-none">
-                                    <i class="bi bi-funnel"></i>
-                                </button>
+                        <div class="d-flex flex-wrap flex-lg-nowrap align-items-start justify-content-between gap-3 mb-2">
+                            <div class="d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between gap-2 gap-md-3 flex-grow-1">
+                                <div class="nav nav-nowrap gap-3 gap-xl-4 {{ $stockClearanceProducts > 0 ? 'nav--tabs' : ''}}">
+                                    <a href="{{ route('shopView',['id' => $seller_id]) }}" class="text-capitalize {{ request('offer_type') != 'clearance_sale' ? 'active' : '' }}">{{ translate('all_products') }}</a>
+                                    @if($stockClearanceSetup && $stockClearanceProducts > 0)
+                                        <a href="{{ route('shopView',['id' => $seller_id, 'offer_type' => 'clearance_sale']) }}" class="text-capitalize {{ request('offer_type') == 'clearance_sale' ? 'active' : '' }}">{{ translate('clearance_sale') }}</a>
+                                    @endif
+                                </div>
 
-                                <ul class="product-view-option option-select-btn gap-3">
+                                <ul class="product-view-option option-select-btn align-items-center gap-3">
                                     <li>
                                         <label>
                                             <input type="radio" name="product_view" value="grid-view" hidden=""
                                                    {{!session()->has('product_view_style')?'checked':''}}
                                                    {{(session()->get('product_view_style') == 'grid-view'?'checked':'')}} id="grid-view">
-                                            <span class="py-2 d-flex align-items-center gap-2 text-capitalize"><i
-                                                    class="bi bi-grid-fill"></i> {{translate('grid_view')}}</span>
+                                            <span class="py-2 d-flex align-items-center gap-2 text-capitalize">
+                                                <i class="bi bi-grid-fill"></i>
+                                                <span class="d-none d-sm-inline">{{translate('grid_view')}}</span>
+                                            </span>
                                         </label>
                                     </li>
                                     <li>
                                         <label>
                                             <input type="radio" name="product_view" value="list-view" hidden=""
                                                    {{(session()->get('product_view_style') == 'list-view'?'checked':'')}} id="list-view">
-                                            <span class="py-2 d-flex align-items-center gap-2 text-capitalize"><i
-                                                    class="bi bi-list-ul"></i> {{translate('list_view')}}</span>
+                                            <span class="py-2 d-flex align-items-center gap-2 text-capitalize">
+                                                <i class="bi bi-list-ul"></i>
+                                                <span class="d-none d-sm-inline">{{translate('list_view')}}</span>
+                                            </span>
                                         </label>
+                                    </li>
+                                    <li>
+                                        <button class="toggle-filter square-btn btn btn-outline-primary rounded d-lg-none">
+                                            <i class="bi bi-funnel"></i>
+                                        </button>
                                     </li>
                                 </ul>
                             </div>
@@ -405,13 +409,14 @@
     <input type="hidden" value="{{$data['name']}}" id="data_name">
     <input type="hidden" value="{{$data['min_price']}}" id="data_min_price">
     <input type="hidden" value="{{$data['max_price']}}" id="data_max_price">
-
     <span id="products-search-data-backup"
+          data-page="{{ request('page') ?? 1 }}"
           data-url="{{ route('shopView',['id' => ($shopInfoArray['id'] != 0 ? $shopInfoArray['id'] : 0)]) }}"
           data-brand="{{ $data['brand_id'] ?? '' }}"
-          data-category="{{ $data['category_id'] ?? '' }}"
+          data-category_id="{{ $data['category_id'] ?? '' }}"
           data-name="{{ request('search') ?? request('name') }}"
           data-from="{{ request('data_from') }}"
+          data-offer = "{{ request('offer_type') }}"
           data-sort="{{ request('sort_by') }}"
           data-min-price="{{ request('min_price') }}"
           data-max-price="{{ request('max_price') }}"

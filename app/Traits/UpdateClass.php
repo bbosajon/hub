@@ -3,15 +3,13 @@
 namespace App\Traits;
 
 use App\Models\Admin;
-use App\Models\Brand;
-use App\Models\Category;
+use App\Models\AnalyticScript;
 use App\Models\EmailTemplate;
 use App\Models\HelpTopic;
 use App\Models\LoginSetup;
+use App\Models\Setting;
 use App\Models\Shop;
 use App\Models\VendorRegistrationReason;
-use App\Repositories\EmailTemplatesRepository;
-use App\Services\EmailTemplateService;
 use App\Utils\Helpers;
 use App\Enums\GlobalConstant;
 use App\Http\Controllers\InstallController;
@@ -47,6 +45,7 @@ trait UpdateClass
         $this->getInsertDataOfVersion('14.7');
         $this->getInsertDataOfVersion('14.8');
         $this->getInsertDataOfVersion('14.9');
+        $this->getInsertDataOfVersion('15.0');
     }
 
     /**
@@ -80,6 +79,56 @@ trait UpdateClass
             $policy = $this->businessSettingGetOrInsert(type: $type, value: json_encode(['status' => 0, 'content' => '']));
         }
         return $policy;
+    }
+
+    public function addOrUpdateAnalyticScript(): void
+    {
+        $analyticScripts = [
+            'meta_pixel' => [
+                'name' => 'Meta Pixel',
+                'type' => 'meta_pixel',
+            ],
+            'linkedin_insight' => [
+                'name' => 'LinkedIn Insight',
+                'type' => 'linkedin_insight',
+            ],
+            'tiktok_tag' => [
+                'name' => 'TikTok Tag',
+                'type' => 'tiktok_tag',
+            ],
+            'snapchat_tag' => [
+                'name' => 'Snapchat Tag',
+                'type' => 'snapchat_tag',
+            ],
+            'twitter_tag' => [
+                'name' => 'Twitter Tag',
+                'type' => 'twitter_tag',
+            ],
+            'pinterest_tag' => [
+                'name' => 'Pinterest Tag',
+                'type' => 'pinterest_tag',
+            ],
+            'google_tag_manager' => [
+                'name' => 'Google Tag Manager',
+                'type' => 'google_tag_manager',
+            ],
+            'google_analytics' => [
+                'name' => 'Google Analytics',
+                'type' => 'google_analytics',
+            ],
+        ];
+
+        foreach ($analyticScripts as $script) {
+            $result = AnalyticScript::where(['type' => $script['type']])->first();
+            if (!$result) {
+                AnalyticScript::updateOrInsert(['type' => $script['type']], [
+                    'name' => $script['name'],
+                    'type' => $script['type'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
     }
 
     public function getInsertDataOfVersion($versionNumber): void
@@ -208,7 +257,7 @@ trait UpdateClass
             }
 
             // Existing payment gateway data import from business setting table
-            $this->payment_gateway_data_update();
+            $this->paymentGatewayDataUpdate();
             $this->sms_gateway_data_update();
 
             $this->businessSettingGetOrInsert(type: 'guest_checkout', value: 0);
@@ -458,6 +507,27 @@ trait UpdateClass
             $this->businessSettingGetOrInsert(type: 'deliveryman_forgot_password_method', value: 'phone');
         }
 
+        if ($versionNumber == '15.0') {
+            $this->businessSettingGetOrInsert(type: 'stock_clearance_product_list_priority', value: json_encode([
+                'custom_sorting_status' => 0,
+                'sort_by' => 'latest_created',
+                'out_of_stock_product' => 'hide',
+                'temporary_close_sorting' => 'desc',
+            ]));
+            $this->businessSettingGetOrInsert(type: 'stock_clearance_vendor_priority', value: '');
+            $this->addOrUpdateAnalyticScript();
+
+            $googleTagManagerId = BusinessSetting::where(['type' => 'google_tag_manager_id'])->first()?->value;
+            if ($googleTagManagerId) {
+                AnalyticScript::where(['type' => 'google_tag_manager'])->update(['script_id' => $googleTagManagerId]);
+            }
+
+            $pixelAnalytics = BusinessSetting::where(['type' => 'pixel_analytics'])->first()?->value;
+            if ($pixelAnalytics) {
+                AnalyticScript::where(['type' => 'meta_pixel'])->update(['script_id' => $pixelAnalytics]);
+            }
+        }
+
         Artisan::call('file:permission');
         if (DOMAIN_POINTED_DIRECTORY == 'public' && function_exists('shell_exec')) {
             shell_exec('ln -s ../resources/themes themes');
@@ -605,12 +675,12 @@ trait UpdateClass
                 BusinessSetting::whereIn('type', $gateway)->delete();
             }
         } catch (\Exception $exception) {
-            dd($exception);
         }
         return true;
     }
 
-    private function payment_gateway_data_update()
+
+    private function paymentGatewayDataUpdate(): void
     {
         try {
             $gateway[] = ['ssl_commerz_payment'];
@@ -742,7 +812,60 @@ trait UpdateClass
         } catch (\Exception $exception) {
 
         }
-        return true;
+
+        $addonSettings = [
+            [
+                'id' => '42a8cad7-6736-11ee-909d-0c7a158e4469',
+                'key_name' => 'instamojo',
+                'live_values' => json_encode([
+                    'gateway' => 'instamojo',
+                    'mode' => 'test',
+                    'status' => '0',
+                    'client_id' => '',
+                    'client_secret' => ''
+                ]),
+            ],
+            [
+                'id' => 'a40991e4-6735-11ee-909d-0c7a158e4469',
+                'key_name' => 'phonepe',
+                'live_values' => json_encode([
+                    'gateway' => 'phonepe',
+                    'mode' => 'test',
+                    'status' => 0,
+                    'merchant_id' => '',
+                    'salt_Key' => '',
+                    'salt_index' => ''
+                ]),
+            ],
+            [
+                'id' => 'cc90e5f2-6735-11ee-909d-0c7a158e4469',
+                'key_name' => 'cashfree',
+                'live_values' => json_encode([
+                    'gateway' => 'cashfree',
+                    'mode' => 'test',
+                    'status' => 0,
+                    'client_id' => '',
+                    'client_secret' => ''
+                ]),
+            ],
+        ];
+
+        foreach ($addonSettings as $addonSetting) {
+            if (!Setting::where(['key_name' => $addonSetting['key_name'], 'settings_type' => 'payment_config'])->first()) {
+                Setting::create([
+                    'id' => $addonSetting['id'],
+                    'key_name' => $addonSetting['key_name'],
+                    'live_values' => $addonSetting['live_values'],
+                    'test_values' => $addonSetting['live_values'],
+                    'settings_type' => 'payment_config',
+                    'mode' => 'test',
+                    'is_active' => 0,
+                    'created_at' => null,
+                    'updated_at' => null,
+                    'additional_data' => null,
+                ]);
+            }
+        }
     }
 
     public function getPrioritySetupAndVendorRegistrationData(): void

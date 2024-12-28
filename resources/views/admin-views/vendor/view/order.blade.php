@@ -64,6 +64,10 @@ use Illuminate\Support\Facades\Session;
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
+                           href="{{ route('admin.vendors.view',['id'=>$seller['id'], 'tab'=>'clearance_sale']) }}">{{translate('clearance_sale_products')}}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
                            href="{{ route('admin.vendors.view',['id'=>$seller->id, 'tab'=>'setting']) }}">{{translate('setting')}}</a>
                     </li>
                     <li class="nav-item">
@@ -159,19 +163,27 @@ use Illuminate\Support\Facades\Session;
                                                 <a href="{{route('admin.vendors.order-details',['order_id'=>$order['id'],'vendor_id'=>$order['seller_id']])}}"
                                                    class="title-color hover-c1">{{$order['id']}}</a>
                                             </td>
-                                            <td>{{date('d M Y',strtotime($order['created_at']))}}</td>
+                                            <td>
+                                                <div>{{date('d M Y',strtotime($order['created_at']))}},</div>
+                                                <div>{{ date("h:i A",strtotime($order['created_at'])) }}</div>
+                                            </td>
                                             <td>
                                                 @if($order->is_guest)
-                                                    {{translate('guest_customer')}}
+                                                    <strong class="title-name">{{translate('guest_customer')}}</strong>
+                                                @elseif($order->customer_id == 0)
+                                                    <strong class="title-name">{{translate('walking_customer')}}</strong>
                                                 @else
                                                     @if($order->customer)
                                                         <a class="text-body text-capitalize"
-                                                           href="{{route('admin.customer.view',['user_id'=>$order->customer['id']])}}">
-                                                            {{$order?->customer['f_name'] ?? ''}} {{$order?->customer['l_name']??''}}
+                                                           href="{{route('admin.customer.view',['user_id'=>$order['customer_id']])}}">
+                                                            <strong
+                                                                class="title-name">{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong>
                                                         </a>
+                                                        <a class="d-block title-color"
+                                                           href="tel:{{ $order->customer['phone'] }}">{{ $order->customer['phone'] }}</a>
                                                     @else
                                                         <label
-                                                                class="badge badge-soft-danger fz-12">{{translate('removed')}}</label>
+                                                            class="badge badge-danger fz-12">{{translate('invalid_customer_data')}}</label>
                                                     @endif
                                                 @endif
                                             </td>
@@ -187,31 +199,44 @@ use Illuminate\Support\Facades\Session;
                                             <td>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $order['order_amount']))}}</td>
                                             <td class="text-capitalize">
                                                 @if($order['order_status']=='pending')
-                                                    <span
-                                                            class="badge badge-soft-info fz-12">{{translate('pending')}}</span>
+                                                    <span class="badge badge-soft-info fz-12">
+                                                        {{translate('pending')}}
+                                                    </span>
                                                 @elseif($order['order_status']=='confirmed')
-                                                    <span
-                                                            class="badge badge-soft-info fz-12">{{translate('confirmed')}}</span>
+                                                    <span class="badge badge-soft-info fz-12">
+                                                        {{translate('confirmed')}}
+                                                    </span>
                                                 @elseif($order['order_status']=='processing')
-                                                    <span
-                                                            class="badge badge-soft-warning fz-12">{{translate('processing')}}</span>
+                                                    <span class="badge badge-soft-warning fz-12">
+                                                        {{translate('processing')}}
+                                                    </span>
                                                 @elseif($order['order_status']=='out_for_delivery')
-                                                    <span
-                                                            class="badge badge-soft-warning fz-12">{{translate('out_for_delivery')}}</span>
+                                                    <span class="badge badge-soft-warning fz-12">
+                                                        {{translate('out_for_delivery')}}
+                                                    </span>
                                                 @elseif($order['order_status']=='delivered')
-                                                    <span
-                                                            class="badge badge-soft-success fz-12">{{translate('delivered')}}</span>
+                                                    <span class="badge badge-soft-success fz-12">
+                                                        {{translate('delivered')}}
+                                                    </span>
                                                 @else
-                                                    <span
-                                                            class="badge badge-soft-danger fz-12">{{translate(str_replace('_',' ',$order['order_status']))}}</span>
+                                                    <span class="badge badge-soft-danger fz-12">
+                                                        {{translate(str_replace('_',' ',$order['order_status']))}}
+                                                    </span>
                                                 @endif
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center">
                                                     <a title="{{translate('view')}}"
-                                                       class="btn btn-outline-info btn-sm square-btn"
-                                                       href="{{route('admin.vendors.order-details',['order_id'=>$order['id'],'vendor_id'=>$order['seller_id']])}}"><i
-                                                                class="tio-invisible"></i>
+                                                       class="btn btn-outline--primary square-btn btn-sm mr-1"
+                                                       href="{{route('admin.vendors.order-details',['order_id'=>$order['id'],'vendor_id'=>$order['seller_id']])}}">
+                                                        <img src="{{dynamicAsset(path: 'public/assets/back-end/img/eye.svg')}}"
+                                                             class="svg" alt="">
+                                                    </a>
+
+                                                    <a class="btn btn-outline-success square-btn btn-sm mr-1"
+                                                       target="_blank" title="{{translate('invoice')}}"
+                                                       href="{{route('admin.orders.generate-invoice',[$order['id']])}}">
+                                                        <i class="tio-download-to"></i>
                                                     </a>
                                                 </div>
                                             </td>

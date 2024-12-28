@@ -17,13 +17,20 @@
                 <div>
                     <div class="media flex-nowrap flex-column flex-sm-row gap-3 flex-grow-1 align-items-center align-items-md-start">
                         <div class="d-flex flex-column align-items-center __min-w-165px">
-                            <a class="aspect-1 float-left overflow-hidden"
-                               href="{{ getStorageImages(path: $product->thumbnail_full_url,type: 'backend-product') }}"
-                               data-lightbox="product-gallery-{{ $product['id'] }}">
-                                <img class="avatar avatar-170 rounded object-fit-cover"
-                                     src="{{ getStorageImages(path: $product->thumbnail_full_url,type: 'backend-product') }}"
-                                     alt="">
-                            </a>
+                            <div class="position-relative">
+                                @if($product?->clearanceSale)
+                                    <div class="position-absolute z-index-1 badge badge-soft-warning user-select-none m-2">
+                                        {{ translate('Clearance_Sale') }}
+                                    </div>
+                                @endif
+                                <a class="aspect-1 float-left overflow-hidden"
+                                   href="{{ getStorageImages(path: $product->thumbnail_full_url,type: 'backend-product') }}"
+                                   data-lightbox="product-gallery-{{ $product['id'] }}">
+                                    <img class="avatar avatar-170 rounded object-fit-cover"
+                                         src="{{ getStorageImages(path: $product->thumbnail_full_url,type: 'backend-product') }}"
+                                         alt="">
+                                </a>
+                            </div>
                             <div class="d-flex gap-1 flex-wrap justify-content-center">
                                 @if ($productActive && $isActive)
                                     <a href="{{ route('product', $product['slug']) }}"
@@ -364,17 +371,12 @@
                                         </span>
                                     </div>
                                 @endif
-                                @if($product->discount > 0)
+                                @if(getProductPriceByType(product: $product, type: 'discount', result: 'string') > 0)
                                     <div>
                                         <span class="key text-nowrap">{{ translate('discount') }}</span>
                                         <span>:</span>
-                                        @if ($product->discount_type == 'percent')
-                                            <span class="value">{{ $product->discount }}%</span>
-                                        @else
-                                            <span class="value">
-                                                {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product->discount), currencyCode: getCurrencyCode()) }}
-                                            </span>
-                                        @endif
+                                        @if($product?->clearanceSale?->discount_type == 'percentage' ? '-' : '') @endif
+                                        {{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                                     </div>
                                 @endif
                             </div>
@@ -510,10 +512,10 @@
                         @if($product?->seoInfo?->image_full_url['path'] || $product->meta_image_full_url['path'])
                             <div class="d-flex flex-wrap gap-2">
                                 <a class="aspect-1 float-left overflow-hidden"
-                                   href="{{ getStorageImages(path: $product?->seoInfo?->image_full_url['path'] ? $product?->seoInfo?->image_full_url : $product->meta_image_full_url,type: 'backend-basic') }}"
+                                   href="{{ getStorageImages(path: $product?->seoInfo?->image_full_url['path'] ? $product?->seoInfo?->image_full_url : $product->meta_image_full_url,type: 'backend-product') }}"
                                    data-lightbox="meta-thumbnail">
-                                    <img class="max-width-100px"
-                                         src="{{ getStorageImages(path: $product?->seoInfo?->image_full_url['path'] ? $product?->seoInfo?->image_full_url : $product->meta_image_full_url,type: 'backend-basic') }}" alt="{{translate('meta_image')}}">
+                                    <img class="max-width-100px rounded"
+                                         src="{{ getStorageImages(path: $product?->seoInfo?->image_full_url['path'] ? $product?->seoInfo?->image_full_url : $product->meta_image_full_url,type: 'backend-product') }}" alt="{{translate('meta_image')}}">
                                 </a>
                             </div>
                         @endif
@@ -617,10 +619,10 @@
                                         @if(count($review->attachment_full_url) > 0)
                                             @foreach ($review->attachment_full_url as $img)
                                                 <a class="aspect-1 float-left overflow-hidden"
-                                                   href="{{ getStorageImages(path: $img,type: 'backend-basic') }}"
+                                                   href="{{ getStorageImages(path: $img,type: 'backend-product') }}"
                                                    data-lightbox="review-gallery{{ $review['id'] }}" >
                                                     <img class="p-2" width="60" height="60"
-                                                         src="{{ getStorageImages(path: $img,type: 'backend-basic') }}" alt="{{translate('review_image')}}">
+                                                         src="{{ getStorageImages(path: $img,type: 'backend-product') }}" alt="{{translate('review_image')}}">
                                                 </a>
                                             @endforeach
                                         @endif
@@ -740,10 +742,10 @@
                                         @if(count($review->attachment_full_url) > 0)
                                             @foreach ($review->attachment_full_url as $img)
                                                 <a class="aspect-1 float-left overflow-hidden"
-                                                   href="{{ getStorageImages(path: $img,type: 'backend-basic') }}"
+                                                   href="{{ getStorageImages(path: $img,type: 'backend-product') }}"
                                                    data-lightbox="review-gallery-modal{{ $review['id'] }}" >
                                                     <img width="45" class="rounded aspect-1 border"
-                                                         src="{{ getStorageImages(path: $img,type: 'backend-basic') }}"
+                                                         src="{{ getStorageImages(path: $img,type: 'backend-product') }}"
                                                          alt="{{translate('review_image')}}">
                                                 </a>
                                             @endforeach
@@ -818,10 +820,10 @@
                                     @if(count($review->attachment_full_url) > 0)
                                         @foreach ($review->attachment_full_url as $img)
                                             <a class="aspect-1 float-left overflow-hidden"
-                                               href="{{ getStorageImages(path: $img,type: 'backend-basic') }}"
+                                               href="{{ getStorageImages(path: $img,type: 'backend-product') }}"
                                                data-lightbox="review-gallery-modal{{ $review['id'] }}" >
                                                 <img width="45" class="rounded aspect-1 border"
-                                                     src="{{ getStorageImages(path: $img,type: 'backend-basic') }}"
+                                                     src="{{ getStorageImages(path: $img,type: 'backend-product') }}"
                                                      alt="{{translate('review_image')}}">
                                             </a>
                                         @endforeach

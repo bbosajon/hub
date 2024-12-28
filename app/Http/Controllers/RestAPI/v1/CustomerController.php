@@ -221,7 +221,11 @@ class CustomerController extends Controller
 
         $wishlist = Wishlist::whereHas('wishlistProduct', function ($q) {
             return $q;
-        })->with(['productFullInfo'])->where('customer_id', $request->user()->id)->get();
+        })->with(['productFullInfo' => function ($query) {
+            return $query->with(['clearanceSale' => function ($query) {
+                return $query->active();
+            }]);
+        }])->where('customer_id', $request->user()->id)->get();
 
         $wishlist->map(function ($data) {
             $data['productFullInfo'] = Helpers::product_data_formatting(json_decode($data['productFullInfo'], true));
@@ -422,7 +426,7 @@ class CustomerController extends Controller
             ->where(['order_id' => $request['order_id']])
             ->get();
 
-        $detailsList->map(function ($query) use($user) {
+        $detailsList->map(function ($query) use ($user) {
             $query['variation'] = json_decode($query['variation'], true);
             $product = json_decode($query['product_details'], true);
             $product['thumbnail_full_url'] = $query?->productAllStatus?->thumbnail_full_url;

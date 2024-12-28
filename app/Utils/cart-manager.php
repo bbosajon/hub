@@ -45,10 +45,12 @@ class CartManager
         }
     }
 
-    public static function get_cart($groupId = null, $type = null)
+    public static function getCartListQuery($groupId = null, $type = null)
     {
         return Cart::with(['product' => function ($query) {
-                return $query->active();
+            return $query->active()->with(['clearanceSale' => function ($query) {
+                    return $query->active();
+                }]);
             }])
             ->whereHas('product', function ($query) {
                 return $query->active();
@@ -62,7 +64,33 @@ class CartManager
             ->when($type == 'checked', function ($query) {
                 return $query->where(['is_checked' => 1]);
             })
-            ->get();
+            ->get()?->each(function ($item) {
+                $item['discount'] = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+            });
+    }
+
+    public static function getCartListGroupQuery($groupId = null, $type = null)
+    {
+        return Cart::with(['product' => function ($query) {
+            return $query->active()->with(['clearanceSale' => function ($query) {
+                    return $query->active();
+                }]);
+            }])
+            ->whereHas('product', function ($query) {
+                return $query->active();
+            })
+            ->when($groupId == null, function ($query) {
+                return $query->whereIn('cart_group_id', CartManager::get_cart_group_ids());
+            })
+            ->when($groupId, function ($query) use ($groupId) {
+                return $query->where('cart_group_id', $groupId);
+            })
+            ->when($type == 'checked', function ($query) {
+                return $query->where(['is_checked' => 1]);
+            })
+            ->get()?->each(function ($item) {
+                $item['discount'] = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+            })->groupBy('cart_group_id');
     }
 
     public static function get_cart_for_api($request, $groupId = null, $type = null)
@@ -195,13 +223,14 @@ class CartManager
         return $total;
     }
 
-    public static function cart_total_applied_discount($cart)
+    public static function getCartListTotalAppliedDiscount($cart): float|int
     {
         $total = 0;
         if (!empty($cart)) {
             foreach ($cart as $item) {
-                $product_subtotal = ($item['price'] - $item['discount']) * $item['quantity'];
-                $total += $product_subtotal;
+                $discount = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $productSubtotal = ($item['price'] - $discount) * $item['quantity'];
+                $total += $productSubtotal;
             }
         }
         return $total;
@@ -222,22 +251,21 @@ class CartManager
     public static function cart_grand_total($cartGroupId = null, $type = null)
     {
         if ($type == 'checked') {
-            $cart = CartManager::get_cart(groupId: $cartGroupId, type: 'checked');
-            $shipping_cost = CartManager::get_shipping_cost(groupId: $cartGroupId, type: 'checked');
+            $cart = CartManager::getCartListQuery(groupId: $cartGroupId, type: 'checked');
+            $shippingCost = CartManager::get_shipping_cost(groupId: $cartGroupId, type: 'checked');
         } else {
-            $cart = CartManager::get_cart(groupId: $cartGroupId);
-            $shipping_cost = CartManager::get_shipping_cost(groupId: $cartGroupId);
+            $cart = CartManager::getCartListQuery(groupId: $cartGroupId);
+            $shippingCost = CartManager::get_shipping_cost(groupId: $cartGroupId);
         }
         $total = 0;
         if (!empty($cart)) {
             foreach ($cart as $item) {
                 $tax = $item['tax_model'] == 'include' ? 0 : $item['tax'];
-                $product_subtotal = ($item['price'] * $item['quantity'])
-                    + ($tax * $item['quantity'])
-                    - $item['discount'] * $item['quantity'];
-                $total += $product_subtotal;
+                $discount = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $productSubtotal = ($item['price'] * $item['quantity']) + ($tax * $item['quantity']) - $discount * $item['quantity'];
+                $total += $productSubtotal;
             }
-            $total += $shipping_cost;
+            $total += $shippingCost;
         }
         return $total;
     }
@@ -263,17 +291,15 @@ class CartManager
     public static function getCartGrandTotalWithoutShippingCharge($cartGroupId = null, $type = null): float|int
     {
         if ($type) {
-            $cart = CartManager::get_cart(groupId: $cartGroupId, type: 'checked');
+            $cart = CartManager::getCartListQuery(groupId: $cartGroupId, type: 'checked');
         } else {
-            $cart = CartManager::get_cart(groupId: $cartGroupId);
+            $cart = CartManager::getCartListQuery(groupId: $cartGroupId);
         }
         $total = 0;
         if (!empty($cart)) {
             foreach ($cart as $item) {
                 $tax = $item['tax_model'] == 'include' ? 0 : $item['tax'];
-                $productSubtotal = ($item['price'] * $item['quantity'])
-                    + ($tax * $item['quantity'])
-                    - $item['discount'] * $item['quantity'];
+                $productSubtotal = ($item['price'] * $item['quantity']) + ($tax * $item['quantity']) - $item['discount'] * $item['quantity'];
                 $total += $productSubtotal;
             }
         }
@@ -394,7 +420,7 @@ class CartManager
         }
 
         $tax = Helpers::tax_calculation(product: $product, price: $price, tax: $product['tax'], tax_type: 'percent');
-        $getProductDiscount = Helpers::getProductDiscount($product, $price);
+        $getProductDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
 
         $cartArray += [
             'customer_id' => ($user == 'offline' ? $guestId : $user->id),
@@ -479,7 +505,7 @@ class CartManager
                     $shipping['shipping_cost'] = $getShippingCost->cost ?? 0;
                     $shipping->save();
 
-                    $cart['free_delivery_order_amount'] = OrderManager::free_delivery_order_amount($cart['cart_group_id']);
+                    $cart['free_delivery_order_amount'] = OrderManager::getFreeDeliveryOrderAmountArray($cart['cart_group_id']);
 
                     return [
                         'status' => 1,
@@ -500,7 +526,7 @@ class CartManager
                     'shipping_cost' => CartManager::get_shipping_cost_for_product_category_wise($product, $request->quantity) ?? 0,
                 ]);
 
-                $cart['free_delivery_order_amount'] = OrderManager::free_delivery_order_amount($cart['cart_group_id']);
+                $cart['free_delivery_order_amount'] = OrderManager::getFreeDeliveryOrderAmountArray($cart['cart_group_id']);
 
                 return [
                     'status' => 1,
@@ -514,7 +540,7 @@ class CartManager
         }
 
         if ($product->product_type == 'physical') {
-            $cart['free_delivery_order_amount'] = OrderManager::free_delivery_order_amount($cart['cart_group_id']);
+            $cart['free_delivery_order_amount'] = OrderManager::getFreeDeliveryOrderAmountArray($cart['cart_group_id']);
         }
 
         return [
@@ -522,6 +548,7 @@ class CartManager
             'in_cart_key' => $cart['id'],
             'cart' => $cart,
             'message' => translate('successfully_added') . '!',
+            'product_variant_type' => count(json_decode($product['variation'], true)) > 0 ? 'multi_variant' : 'single_variant',
         ];
     }
 
@@ -548,7 +575,7 @@ class CartManager
         }
 
         $tax = Helpers::tax_calculation(product: $product, price: $price, tax: $product['tax'], tax_type: 'percent');
-        $getProductDiscount = Helpers::getProductDiscount($product, $price);
+        $getProductDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
         $cartArray = [
             'customer_id' => $customerId,
             'product_id' => $request['id'],
@@ -619,12 +646,15 @@ class CartManager
             'in_cart_key' => $cart['id'],
             'cart' => $cart,
             'message' => translate('successfully_added') . '!',
+            'product_variant_type' => count(json_decode($product['variation'], true)) > 0 ? 'multi_variant' : 'single_variant',
         ];
     }
 
     public static function add_to_cart($request, $from_api = false): array
     {
-        $product = Product::with(['digitalVariation'])->where(['id' => $request['id']])->first();
+        $product = Product::with(['digitalVariation', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }])->where(['id' => $request['id']])->first();
 
         $shippingMethod = getWebConfig(name: 'shipping_method');
         $adminShipping = ShippingType::where('seller_id', 0)->first();
@@ -758,7 +788,7 @@ class CartManager
         return $cost;
     }
 
-    public static function get_shipping_cost_saved_for_free_delivery($groupId = null, $type = null)
+    public static function getShippingCostSavedForFreeDelivery($groupId = null, $type = null)
     {
         $costSaved = 0;
 
@@ -780,7 +810,7 @@ class CartManager
 
         foreach ($cartGroup as $cart) {
             if ($cart->count() > 0) {
-                $freeDeliveryCheck = OrderManager::free_delivery_order_amount($cart[0]->cart_group_id);
+                $freeDeliveryCheck = OrderManager::getFreeDeliveryOrderAmountArray($cart[0]->cart_group_id);
                 $costSaved += $freeDeliveryCheck['shipping_cost_saved'];
             }
         }

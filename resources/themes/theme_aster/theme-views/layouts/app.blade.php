@@ -1,7 +1,4 @@
-@php
-    use function App\Utils\hex_to_rgb;
-@endphp
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ session()->get('direction') }}">
 <head>
 
@@ -62,52 +59,8 @@
             --bs-btn-border-color: {{ $web_config['primary_color'] }} !important;
         }
     </style>
-    @php($google_tag_manager_id = getWebConfig(name: 'google_tag_manager_id'))
-    @if($google_tag_manager_id )
-        <script>(function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({
-                    'gtm.start':
-                        new Date().getTime(), event: 'gtm.js'
-                });
-                let f = d.getElementsByTagName(s)[0],
-                    j = d.createElement(s), dl = l !== 'dataLayer' ? '&l=' + l : '';
-                j.async = true;
-                j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                f.parentNode.insertBefore(j, f);
-            })(window, document, 'script', 'dataLayer', '{{$google_tag_manager_id}}');
-        </script>
-    @endif
-    @php($pixel_analytices_user_code =getWebConfig(name: 'pixel_analytics'))
-    @if($pixel_analytices_user_code)
-        <script>
-            !function (f, b, e, v, n, t, s) {
-                if (f.fbq) return;
-                n = f.fbq = function () {
-                    n.callMethod ?
-                        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-                };
-                if (!f._fbq) f._fbq = n;
-                n.push = n;
-                n.loaded = !0;
-                n.version = '2.0';
-                n.queue = [];
-                t = b.createElement(e);
-                t.async = !0;
-                t.src = v;
-                s = b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t, s)
-            }(window, document, 'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '{{ $pixel_analytices_user_code }}');
-            fbq('track', 'PageView');
-        </script>
-        <noscript>
-            <img class="d-none" height="1" width="1"
-                 src="https://www.facebook.com/tr?id={{ $pixel_analytices_user_code }}&ev=PageView&noscript=1" alt=""/>
-        </noscript>
-    @endif
+
+    {!! getSystemDynamicPartials(type: 'analytics_script') !!}
 </head>
 <body class="toolbar-enabled">
 <script>
@@ -121,12 +74,6 @@
     }
     setThemeMode();
 </script>
-@if($google_tag_manager_id)
-    <noscript>
-        <iframe class="d-none visibility-hidden" src="https://www.googletagmanager.com/ns.html?id={{$google_tag_manager_id}}"
-                height="0" width="0"></iframe>
-    </noscript>
-@endif
 <div class="preloader d--none" id="loading">
     <img width="200" alt="" src="{{ getStorageImages(path: getWebConfig(name: 'loader_gif'), type: 'source', source: theme_asset('assets/img/loader.gif')) }}">
 </div>
@@ -136,12 +83,15 @@
 @yield('content')
 @include('theme-views.layouts.partials._feature')
 @include('theme-views.layouts.partials._footer')
+
 <a href="#" class="back-to-top">
     <i class="bi bi-arrow-up"></i>
 </a>
+
 <div class="app-bar px-sm-2 d-xl-none" id="mobile_app_bar">
     @include('theme-views.layouts.partials._app-bar')
 </div>
+
 <span class="customize-text"
       data-textno="{{ translate('no') }}"
       data-textyes="{{ translate('yes') }}"

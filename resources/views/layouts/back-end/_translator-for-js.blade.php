@@ -9,7 +9,7 @@
 <span id="get-confirm-and-cancel-button-text" data-sure ="{{translate('are_you_sure').'?'}}"
       data-delete-text="{{translate('once_deleted_you_will_not_be_able_to_recover_this').'!'}}"
       data-confirm="{{translate('yes')}}" data-cancel="{{translate('no')}}"></span>
-<span id="get-confirm-and-cancel-button-text-for-delete" data-sure ="{{translate('are_you_sure_to_delete_this').'?'}}"
+<span id="get-confirm-and-cancel-button-text-for-delete" data-sure ="{{translate('are_you_sure_you_want_to_delete_this').'?'}}"
       data-text="{{translate('you_will_not_be_able_to_revert_this').'!'}}"
       data-confirm="{{translate('yes_delete_it')}}" data-cancel="{{translate('cancel')}}"></span>
 <span id="get-copy-to-clipboard" data-success="{{translate('copied_to_the_clipboard')}}"></span>

@@ -27,9 +27,6 @@
         <li class="{{ Request::is('admin/business-settings/map-api') ?'active':'' }}"><a class="text-capitalize"
                                                                                          href="{{route('admin.business-settings.map-api')}}">{{translate('google_map_APIs')}}</a>
         </li>
-        <li class="{{ Request::is('admin/business-settings/'.BusinessSettings::ANALYTICS_INDEX[URI]) ?'active':'' }}">
-            <a href="{{route('admin.business-settings.analytics-index')}}">{{translate('Analytic_Scripts')}}</a>
-        </li>
         <li class="{{ Request::is('admin/storage-connection-settings/'.StorageConnectionSettings::INDEX[URI]) ?'active':'' }}">
             <a href="{{route('admin.storage-connection-settings.index')}}" class="text-capitalize">{{translate('storage_connection')}}</a>
         </li>

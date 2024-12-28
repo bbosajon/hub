@@ -150,7 +150,7 @@
                             </div>
                             <input name="data_from" value="search" hidden>
                             <input name="page" value="1" hidden>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" aria-label="{{ translate('Search') }}">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>
@@ -238,8 +238,7 @@
                                     </li>
                                 </ul>
                             </li>
-
-                            @if($web_config['featured_deals']->count() > 0 || ($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0) || $web_config['discount_product'] > 0)
+                            @if($web_config['featured_deals']->count() > 0 || ($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0) || $web_config['discount_product'] > 0 || $web_config['clearance_sale_product_count'] > 0)
                                 <li>
                                     <a href="javascript:">{{ translate('offers') }}</a>
                                     <ul class="sub_menu">
@@ -257,6 +256,14 @@
                                             <li>
                                                 <a class="d-flex gap-2 align-items-center" href="{{ route('products',['data_from'=>'discounted','page'=>1]) }}">
                                                     <span>{{ translate('discounted_products') }}</span>
+                                                    <span><i class="bi bi-patch-check-fill text-warning"></i></span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if($web_config['clearance_sale_product_count'] > 0)
+                                            <li>
+                                                <a class="gap-2 align-items-center" href="{{ route('products', ['offer_type' => 'clearance_sale', 'page' => 1]) }}">
+                                                    <span>{{ translate('clearance_sale') }}</span>
                                                     <span><i class="bi bi-patch-check-fill text-warning"></i></span>
                                                 </a>
                                             </li>
@@ -355,7 +362,7 @@
                     </div>
                 @else
                     <div class="d-flex justify-content-center mb-5 pb-5 mt-auto px-4">
-                        <a href="" data-bs-toggle="modal" data-bs-target="#loginModal" class="btn btn-primary w-100">
+                        <a href="" data-bs-toggle="modal" data-bs-target="#loginModal" class="btn btn-primary w-100" aria-label="{{ translate('login').'/'.translate('register')}}">
                             {{ translate('login').'/'.translate('register')}}
                         </a>
                     </div>
@@ -426,7 +433,7 @@
                             </li>
                             @if($web_config['featured_deals']->count() > 0 || ($web_config['flash_deals'] && count($web_config['flash_deals_products']) > 0) || $web_config['discount_product'] > 0)
                                 <li>
-                                    <a class="cursor-pointer">{{ translate('offers')}}</a>
+                                    <span class="cursor-pointer no-follow-link" ref="nofollow">{{ translate('offers')}}</span>
                                     <ul class="sub-menu">
                                         @if($web_config['featured_deals']->count()>0)
                                             <li>
@@ -449,12 +456,21 @@
                                                 </a>
                                             </li>
                                         @endif
+
+                                        @if($web_config['clearance_sale_product_count'] > 0)
+                                            <li>
+                                                <a class="gap-2 align-items-center" href="{{ route('products',['offer_type'=>'clearance_sale','page'=>1]) }}">
+                                                    <span>{{ translate('clearance_sale') }}</span>
+                                                    <span><i class="bi bi-patch-check-fill text-warning"></i></span>
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif
                             @if($web_config['business_mode'] == 'multi')
                                 <li>
-                                    <a class="cursor-pointer">{{ translate('stores') }}</a>
+                                    <span class="cursor-pointer no-follow-link" ref="nofollow">{{ translate('stores') }}</span>
                                     <div
                                         class="sub-menu megamenu p-3 bs-dropdown-min-width--max-content">
                                         <div class="d-flex gap-5">
@@ -512,7 +528,7 @@
 
                             @if($web_config['brand_setting'])
                                 <li>
-                                    <a class="cursor-pointer">{{ translate('brands') }}</a>
+                                    <span class="cursor-pointer no-follow-link" ref="nofollow">{{ translate('brands') }}</span>
                                     <div class="sub-menu megamenu p-3 bs-dropdown-min-width--max-content">
                                         <div class="d-flex gap-4">
                                             <div class="column-2">

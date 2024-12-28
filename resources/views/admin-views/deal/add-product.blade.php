@@ -29,7 +29,7 @@
                                                 <input type="text" class="js-form-search form-control search-bar-input search-product" placeholder="{{translate('search_by_product_name').'...'}}" multiple>
                                             </div>
                                             <div class="dropdown-menu w-100 px-2">
-                                                <div class="d-flex flex-column max-h-200 overflow-y-auto overflow-x-hidden search-result-box">
+                                                <div class="d-flex flex-column max-h-300 overflow-y-auto overflow-x-hidden search-result-box">
                                                     @include('admin-views.partials._search-product',['products'=>$products])
                                                 </div>
                                             </div>

@@ -36,12 +36,6 @@
 
         var recaptchaVerifiers = {};
 
-        window.onload = function() {
-            initializeFirebaseGoogleRecaptcha('recaptcha-container-otp', 'OTP Verification');
-            initializeFirebaseGoogleRecaptcha('recaptcha-container-manual-login', 'Manual Login');
-            initializeFirebaseGoogleRecaptcha('recaptcha-container-verify-token', 'Token Verification');
-        };
-
         function initializeFirebaseGoogleRecaptcha(containerId, action) {
             try {
                 var recaptchaContainer = document.getElementById(containerId);
@@ -74,6 +68,14 @@
                 console.log(e)
             }
         }
+
+        @if($web_config['firebase_otp_verification'] && $web_config['firebase_otp_verification']['status'])
+            window.onload = function() {
+                initializeFirebaseGoogleRecaptcha('recaptcha-container-otp', 'OTP Verification');
+                initializeFirebaseGoogleRecaptcha('recaptcha-container-manual-login', 'Manual Login');
+                initializeFirebaseGoogleRecaptcha('recaptcha-container-verify-token', 'Token Verification');
+            };
+        @endif
 
         function storeRecaptchaVerifierResponse(containerId, response) {
             console.log('Response from ' + containerId + ': ' + response);

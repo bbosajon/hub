@@ -64,7 +64,7 @@ class POSController extends Controller
         $unitPrice = $product['unit_price'];
         $tax = Helpers::tax_calculation(product: $product, price: $product['unit_price'], tax: $product['tax'], tax_type: $product['tax_type']);
         $price = $product['tax_model'] == 'include' ? $product['unit_price'] - $tax : $product['unit_price'];
-        $productDiscount = self::getProductDiscount(product: $product, price: $product['unit_price']);
+        $productDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $product['unit_price'], from: 'panel');
         $productSubtotal = ($product['unit_price']) * $cartItem['quantity'];
 
         if ($cartItem['variant'] != null) {
@@ -73,7 +73,7 @@ class POSController extends Controller
                     $tax = Helpers::tax_calculation(product: $product, price: $variation['price'], tax: $product['tax'], tax_type: $product['tax_type']);
                     $unitPrice = $variation['price'];
                     $price = $product['tax_model'] == 'include' ? $variation['price'] - $tax : $variation['price'];
-                    $productDiscount = self::getProductDiscount(product: $product, price: $variation['price']);
+                    $productDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variation['price'], from: 'panel');
                     $productSubtotal = $variation['price'] * $cartItem['quantity'];
                 }
             }
@@ -104,7 +104,7 @@ class POSController extends Controller
                     $tax = Helpers::tax_calculation(product: $product, price: $digitalVariation['price'], tax: $product['tax'], tax_type: $product['tax_type']);
                     $unitPrice = $digitalVariation['price'];
                     $price = $product['tax_model'] == 'include' ? $digitalVariation['price'] - $tax : $digitalVariation['price'];
-                    $productDiscount = self::getProductDiscount(product: $product, price: $digitalVariation['price']);
+                    $productDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $digitalVariation['price'], from: 'panel');
                     $productSubtotal = $digitalVariation['price'] * $cartItem['quantity'];
                 }
             }
@@ -237,7 +237,9 @@ class POSController extends Controller
             'added_by' => 'seller',
             'user_id' => $seller->id,
             'code' => $request->code
-        ])->first();
+        ])->with(['clearanceSale' => function ($query) {
+            return $query->active()->with(['setup']);
+        }])->first();
 
         $final_product = array();
         if ($product) {
@@ -253,7 +255,9 @@ class POSController extends Controller
         $search = $request['name'];
         $categoryIds = $request->has('category_id') && $request['category_id'] != 0 ? json_decode($request['category_id'], true) : [];
 
-        $products = Product::active()->with(['digitalVariation'])
+        $products = Product::active()->with(['digitalVariation', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
             ->withCount('reviews')
             ->where(['added_by' => 'seller', 'user_id' => $seller['id'], 'status' => 1])
             ->when(!empty($categoryIds), function ($query) use ($categoryIds) {
@@ -335,7 +339,9 @@ class POSController extends Controller
         $generateOrderID = self::getOrderNewId();
         foreach ($carts as $cartItem) {
             if (is_array($cartItem)) {
-                $product = Product::where(['id' => $cartItem['id']])->with(['digitalVariation'])->withCount('reviews')->first();
+                $product = Product::where(['id' => $cartItem['id']])->with(['digitalVariation', 'clearanceSale' => function ($query) {
+                    return $query->active();
+                }])->withCount('reviews')->first();
                 if ($product) {
                     $getOrderDetailsArray = self::getOrderDetailsAddData(cartItem: $cartItem, product: $product);
                     $cartsTotalAmount += $getOrderDetailsArray['price'] * $cartItem['quantity'];

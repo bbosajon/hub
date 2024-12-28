@@ -468,7 +468,7 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                 @php
                     $imagePath = isset($invoiceSettings?->image) ? imagePathProcessing(imageData:  $invoiceSettings?->image ,path:'company') : null;
                 @endphp
-                <img width="60" height="40"
+                <img height="40"
                      src="{{getStorageImages(path: (isset($imagePath['path']) ? $imagePath : getWebConfig(name: 'company_web_logo')) ,type:'backend-logo')}}"
                      alt="" style="margin-bottom:5px">
                 <div class="font-normal">
@@ -732,13 +732,21 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                                         - {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['itemDiscount']), currencyCode: getCurrencyCode()) }}
                                     </td>
                                 </tr>
+                                @if ($order->order_type != 'default_type')
+                                    <tr>
+                                        <td class="text-left font-bold">{{ translate('extra_Discount')}}</td>
+                                        <td class="text-right">
+                                            - {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['extraDiscount']), currencyCode: getCurrencyCode()) }}
+                                        </td>
+                                    </tr>
+                                @endif
                                 <tr>
                                     <td class="text-left font-bold">{{ translate('sub_Total')}}</td>
                                     <td class="text-right">
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['subTotal']), currencyCode: getCurrencyCode()) }}
                                     </td>
                                 </tr>
-                                @if($order->order_type == 'default_type')
+                                @if($order->order_type == 'default_type' && $order?->is_shipping_free != 1)
                                     <tr>
                                         <td class="text-left font-bold">{{ translate('shipping')}}</td>
                                         <td class="text-right">
@@ -758,14 +766,6 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['taxTotal']), currencyCode: getCurrencyCode()) }}
                                     </td>
                                 </tr>
-                                @if ($order->order_type != 'default_type')
-                                    <tr>
-                                        <td class="text-left font-bold">{{ translate('extra_Discount')}}</td>
-                                        <td class="text-right">
-                                            - {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['extraDiscount']), currencyCode: getCurrencyCode()) }}
-                                        </td>
-                                    </tr>
-                                @endif
                                 <tr>
                                     <td class="border-dashed-top font-weight-bold text-left fz-14 font-bold">
                                         {{ translate('total')}}</td>

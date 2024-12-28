@@ -119,12 +119,15 @@ class InstallController extends Controller
         ]);
 
         $this->businessSettingGetOrInsert(type: 'company_name', value: $request['company_name']);
-        $this->businessSettingGetOrInsert(type: 'currency_model', value: $request['currency_model']);
         $this->businessSettingGetOrInsert(type: 'product_brand', value: 1);
         $this->businessSettingGetOrInsert(type: 'digital_product', value: 1);
         $this->businessSettingGetOrInsert(type: 'delivery_boy_expected_delivery_date_message', value: json_encode(['status' => 0, 'message' => '']));
         $this->businessSettingGetOrInsert(type: 'order_canceled', value: json_encode(['status' => 0, 'message' => '']));
         $this->businessSettingGetOrInsert(type: 'offline_payment', value: json_encode(['status' => 0]));
+
+        DB::table('business_settings')->updateOrInsert(['type' => 'currency_model'], [
+            'value' => $request['currency_model']
+        ]);
 
         $this->updateOrInsertPolicy(type: 'refund-policy');
         $this->updateOrInsertPolicy(type: 'return-policy');

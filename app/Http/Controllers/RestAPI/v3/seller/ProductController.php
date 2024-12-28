@@ -9,6 +9,8 @@ use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Contracts\Repositories\PublishingHouseRepositoryInterface;
 use App\Contracts\Repositories\RestockProductCustomerRepositoryInterface;
 use App\Contracts\Repositories\RestockProductRepositoryInterface;
+use App\Contracts\Repositories\StockClearanceProductRepositoryInterface;
+use App\Contracts\Repositories\StockClearanceSetupRepositoryInterface;
 use App\Enums\WebConfigKey;
 use App\Http\Controllers\Controller;
 use App\Models\BusinessSetting;
@@ -22,6 +24,7 @@ use App\Models\OrderDetail;
 use App\Models\Product;
 use App\Models\ProductSeo;
 use App\Models\Review;
+use App\Models\StockClearanceProduct;
 use App\Models\Tag;
 use App\Models\Translation;
 use App\Repositories\DigitalProductPublishingHouseRepository;
@@ -52,6 +55,8 @@ class ProductController extends Controller
         private readonly PublishingHouseRepositoryInterface        $publishingHouseRepo,
         private readonly DigitalProductAuthorRepositoryInterface   $digitalProductAuthorRepo,
         private readonly DigitalProductPublishingHouseRepository   $digitalProductPublishingHouseRepo,
+        private readonly StockClearanceProductRepositoryInterface  $stockClearanceProductRepo,
+        private readonly StockClearanceSetupRepositoryInterface    $stockClearanceSetupRepo,
         private readonly ProductRepositoryInterface                $productRepo,
         private readonly BrandRepositoryInterface                  $brandRepo,
         private readonly ProductService                            $productService,
@@ -64,16 +69,25 @@ class ProductController extends Controller
     public function getProductList(Request $request): JsonResponse
     {
         $seller = $request->seller;
-        $products = Product::withCount('reviews')->where(['added_by' => 'seller', 'user_id' => $seller['id']])->orderBy('id', 'DESC')->get();
+        $products = Product::with(['clearanceSale' => function ($query) {
+            return $query->active();
+        }])
+            ->withCount('reviews')
+            ->where(['added_by' => 'seller', 'user_id' => $seller['id']])
+            ->orderBy('id', 'DESC')->get();
         return response()->json($products, 200);
     }
 
     public function get_seller_all_products($seller_id, Request $request)
     {
-        $products = Product::with(['brand', 'category', 'rating', 'tags', 'reviews', 'seoInfo', 'digitalProductAuthors' => function ($query) {
+        $products = Product::when($request['offer_type'] == 'clearance_sale', function ($query) {
+            return $query->active();
+        })->with(['brand', 'category', 'rating', 'tags', 'reviews', 'seoInfo', 'digitalVariation', 'digitalProductAuthors' => function ($query) {
             return $query->with(['author']);
         }, 'digitalProductPublishingHouse' => function ($query) {
             return $query->with(['publishingHouse']);
+        }, 'clearanceSale' => function ($query) {
+            return $query->active();
         }])
             ->withCount('reviews')
             ->where(['user_id' => $seller_id, 'added_by' => 'seller'])
@@ -82,6 +96,9 @@ class ProductController extends Controller
                 foreach ($key as $value) {
                     $query->where('name', 'like', "%{$value}%");
                 }
+            })->when($request['search'] && $request['offer_type'] == 'clearance_sale', function ($query) {
+                $clearanceSaleProductIds = StockClearanceProduct::pluck('product_id')->toArray();
+                return $query->whereNotIn('id', $clearanceSaleProductIds);
             })
             ->latest()
             ->paginate($request->limit, ['*'], 'page', $request->offset);
@@ -91,7 +108,6 @@ class ProductController extends Controller
             $product->digital_product_publishing_house_names = $this->productService->getProductPublishingHouseInfo(product: $product)['names'];
             return $product;
         });
-
 
         $products_final = Helpers::product_data_formatting($products->items(), true);
 
@@ -106,7 +122,11 @@ class ProductController extends Controller
     public function details(Request $request, $id): JsonResponse
     {
         $seller = $request->seller;
-        $product = Product::with(['seoInfo', 'digitalProductAuthors', 'digitalProductPublishingHouse'])->withCount('reviews')->where(['added_by' => 'seller', 'user_id' => $seller->id])->find($id);
+        $product = Product::with(['seoInfo', 'digitalProductAuthors', 'digitalProductPublishingHouse', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
+            ->withCount('reviews')->where(['added_by' => 'seller', 'user_id' => $seller->id])
+            ->find($id);
 
         if (isset($product)) {
             $product = Helpers::product_data_formatting($product, false);
@@ -135,7 +155,11 @@ class ProductController extends Controller
         $seller = $request->seller;
         $stock_limit = getWebConfig(name: 'stock_limit');
 
-        $products = Product::withCount('reviews')->where(['added_by' => 'seller', 'user_id' => $seller->id, 'product_type' => 'physical', 'request_status' => 1])
+        $products = Product::withCount('reviews')
+            ->with(['seoInfo', 'digitalProductAuthors', 'digitalProductPublishingHouse', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
+            ->where(['added_by' => 'seller', 'user_id' => $seller->id, 'product_type' => 'physical', 'request_status' => 1])
             ->where('current_stock', '<', $stock_limit)
             ->paginate($request['limit'], ['*'], 'page', $request['offset']);
 
@@ -891,8 +915,31 @@ class ProductController extends Controller
 
         $updatedProduct = $this->productRepo->getFirstWhere(params: ['id' => $product['id']]);
         $this->updateRestockRequestListAndNotify(product: $oldProductData, updatedProduct: $updatedProduct);
+        $this->updateStockClearanceProduct(product: $updatedProduct);
 
         return response()->json(['message' => translate('successfully product updated!')], 200);
+    }
+
+    public function updateStockClearanceProduct($product): void
+    {
+        $config = $this->stockClearanceSetupRepo->getFirstWhere(params: [
+            'setup_by' => $product['added_by'] == 'admin' ? $product['added_by'] : 'vendor',
+            'shop_id' => $product['added_by'] == 'admin' ? 0 : $product?->seller?->shop?->id,
+        ]);
+        $stockClearanceProduct = $this->stockClearanceProductRepo->getFirstWhere(params: ['product_id' => $product['id']]);
+
+        if ($config && $config['discount_type'] == 'product_wise' && $stockClearanceProduct && $stockClearanceProduct['discount_type'] == 'flat') {
+            $minimumPrice = $product['unit_price'];
+            foreach ((json_decode($product['variation'], true) ?? []) as $variation) {
+                if ($variation['price'] < $minimumPrice) {
+                    $minimumPrice = $variation['price'];
+                }
+            }
+
+            if ($minimumPrice < $stockClearanceProduct['discount_amount']) {
+                $this->stockClearanceProductRepo->updateByParams(params: ['product_id' => $product['id']], data: ['is_active' => 0]);
+            }
+        }
     }
 
     public function getProductSEOData(object $request, object|null $product = null): array
@@ -1062,7 +1109,11 @@ class ProductController extends Controller
     {
         $seller = $request->seller;
 
-        $orders = OrderDetail::with('product.rating')
+        $orders = OrderDetail::with(['product' => function ($query) {
+                return $query->with(['rating', 'clearanceSale' => function ($query) {
+                    return $query->active();
+                }]);
+            }])
             ->select('product_id', DB::raw('SUM(qty) as count'))
             ->where(['seller_id' => $seller['id'], 'delivery_status' => 'delivered'])
             ->whereHas('product', function ($query) {
@@ -1087,10 +1138,12 @@ class ProductController extends Controller
         return response()->json($data, 200);
     }
 
-    public function most_popular_products(Request $request)
+    public function most_popular_products(Request $request): JsonResponse
     {
         $seller = $request->seller;
-        $products = Product::with(['rating', 'tags'])
+        $products = Product::with(['rating', 'tags', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
             ->withCount('reviews')
             ->whereHas('reviews', function ($query) {
                 return $query;
@@ -1100,12 +1153,12 @@ class ProductController extends Controller
             ->paginate($request['limit'], ['*'], 'page', $request['offset']);
         $products_final = Helpers::product_data_formatting($products, true);
 
-        $data = array(
+        $data = [
             'total_size' => $products->total(),
             'limit' => $request['limit'],
             'offset' => $request['offset'],
             'products' => $products_final
-        );
+        ];
         return response()->json($data, 200);
     }
 

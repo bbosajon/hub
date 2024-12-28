@@ -102,13 +102,15 @@
                                                              }
                                                          }
                                                      @endphp
-                                                    @if($restockProduct?->product?->discount > 0)
-                                                        <span class="discounted_unit_price font-bold">
-                                                            {{ webCurrencyConverter(amount: $productPrices - getProductDiscount(product:  $restockProduct?->product, price: $productPrices)) }}
+                                                    @if(getProductPriceByType(product: $restockProduct?->product, type: 'discount', result: 'value') > 0)
+                                                        <span class="discounted-unit-price font-bold">
+                                                            {{ getProductPriceByType(product: $restockProduct?->product, type: 'discounted_unit_price', result: 'string', price: $productPrices) }}
                                                         </span>
-                                                        <del class="total_unit_price align-middle text-muted fs-18 font-semibold">{{ webCurrencyConverter(amount: $productPrices) }}</del>
+                                                        <del class="product-total-unit-price align-middle text-muted fs-18 font-semibold">
+                                                            {{ webCurrencyConverter(amount: $productPrices) }}
+                                                        </del>
                                                     @else
-                                                        <span class="total_unit_price align-middle fs-15 font-bold">{{ webCurrencyConverter(amount: $productPrices) }}</span>
+                                                        <span class="product-total-unit-price align-middle fs-15 font-bold">{{ webCurrencyConverter(amount: $productPrices) }}</span>
                                                     @endif
                                                 </span>
                                                 </div>

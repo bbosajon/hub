@@ -93,7 +93,11 @@
 <span id="get-customer-list-without-all-customer-route" data-action="{{route('admin.customer.customer-list-without-all-customer')}}"></span>
 
 <span id="get-search-product-route" data-action="{{route('admin.products.search-product')}}"></span>
+<span id="get-search-product-for-clearnace-route" data-action="{{route('admin.deal.clearance-sale.search-product-for-clearance')}}"></span>
+<span id="get-search-vendor-for-clearnace-route" data-action="{{route('admin.deal.clearance-sale.search-vendor-for-clearance')}}"></span>
 <span id="get-multiple-product-details-route" data-action="{{route('admin.products.multiple-product-details')}}"></span>
+<span id="get-multiple-clearance-product-details-route" data-action="{{route('admin.deal.clearance-sale.multiple-clearance-product-details')}}"></span>
+<span id="get-clearance-vendor-add-route" data-action="{{route('admin.deal.clearance-sale.vendor-add')}}"></span>
 <span id="get-orders-list-route" data-action="{{ route('admin.orders.list', ['status'=>'all'])}}"></span>
 <span id="get-stock-limit-status" data-action="{{route('admin.products.stock-limit-status',['type'=>'in_house'])}}"></span>
 <span id="get-product-stock-limit-title" data-title="{{translate('warning')}}"></span>
@@ -110,6 +114,9 @@
 <span id="getChattingNewNotificationCheckRoute" data-route="{{ route('admin.messages.new-notification') }}"></span>
 <span id="route-for-real-time-activities" data-route="{{ route('admin.dashboard.real-time-activities') }}"></span>
 <span class="system-default-country-code" data-value="{{ getWebConfig(name: 'country_code') ?? 'us' }}"></span>
+<span id="get-confirm-and-cancel-button-text-for-delete-all-products" data-sure ="{{translate('are_you_sure').'?'}}"
+      data-text="{{translate('want_to_clear_all_stock_clearance_products?').'!'}}"
+      data-confirm="{{translate('yes_delete_it')}}" data-cancel="{{translate('cancel')}}"></span>
 
 <audio id="myAudio">
     <source src="{{ dynamicAsset(path: 'public/assets/back-end/sound/notification.mp3') }}" type="audio/mpeg">

@@ -99,7 +99,7 @@ class LanguageController extends BaseController
         file_put_contents(base_path('resources/lang/' . $lang . '/messages.php'), $string);
     }
 
-    public function updateTranslate(Request $request, $lang): void
+    public function updateTranslate(Request $request, $lang): JsonResponse
     {
         $translatedMessagesArray = include(base_path('resources/lang/' . $lang . '/messages.php'));
         $newMessagesArray = include(base_path('resources/lang/' . $lang . '/new-messages.php'));
@@ -121,6 +121,7 @@ class LanguageController extends BaseController
             $string = "<?php return " . var_export($dataFiltered, true) . ";";
             file_put_contents(base_path('resources/lang/' . $lang . '/new-messages.php'), $string);
         }
+        return response()->json(['message' => translate('Message_Updated')]);
     }
 
     public function getAutoTranslate(Request $request, $lang): JsonResponse

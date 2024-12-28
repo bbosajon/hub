@@ -3,15 +3,11 @@
 <div class="product-single-hover style--card">
     <div class="overflow-hidden position-relative">
         <div class=" inline_product clickable d-flex justify-content-center">
-            @if($product->discount > 0)
+            @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                 <div class="d-flex">
                     <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
                         <span class="direction-ltr d-block">
-                            @if ($product->discount_type == 'percent')
-                                -{{ round($product->discount,(!empty($decimalPointSettings) ? $decimalPointSettings: 0))}}%
-                            @elseif($product->discount_type =='flat')
-                                -{{ webCurrencyConverter(amount: $product->discount) }}
-                            @endif
+                            -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                         </span>
                     </span>
                 </div>
@@ -60,15 +56,13 @@
             </div>
             <div class="justify-content-between text-center">
                 <div class="product-price text-center d-flex flex-wrap justify-content-center align-items-center gap-8">
-                    @if($product->discount > 0)
+                    @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                         <del class="category-single-product-price">
                             {{ webCurrencyConverter(amount: $product->unit_price) }}
                         </del>
                     @endif
                     <span class="text-accent text-dark">
-                        {{ webCurrencyConverter(amount:
-                            $product->unit_price-(getProductDiscount(product: $product, price: $product->unit_price))
-                        ) }}
+                        {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
                     </span>
                 </div>
             </div>

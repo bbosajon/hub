@@ -333,7 +333,7 @@ class OrderController extends Controller
         $shippingCostSaved = 0;
         foreach ($cart_group_ids as $group_id) {
             $cartAmount += CartManager::api_cart_grand_total($request, $group_id);
-            $shippingCostSaved += CartManager::get_shipping_cost_saved_for_free_delivery(groupId: $group_id, type: 'checked');
+            $shippingCostSaved += CartManager::getShippingCostSavedForFreeDelivery(groupId: $group_id, type: 'checked');
         }
         $paymentAmount = $cartAmount - $request['coupon_discount'] - $shippingCostSaved;
 
@@ -352,11 +352,11 @@ class OrderController extends Controller
                 $zip_restrict_status = getWebConfig(name: 'delivery_zip_code_area_restriction');
                 $country_restrict_status = getWebConfig(name: 'delivery_country_restriction');
 
-                if ($request->has('billing_address_id')) {
+                if ($request->has('billing_address_id') && $request['billing_address_id']) {
                     $shipping_address = ShippingAddress::where(['customer_id' => $request->user()->id, 'id' => $request->input('billing_address_id')])->first();
 
                     if (!$shipping_address) {
-                        return response()->json(['message' => translate('address_not_found')], 200);
+                        return response()->json(['message' => translate('address_not_found')], 403);
                     } elseif ($country_restrict_status && !self::delivery_country_exist_check($shipping_address->country)) {
                         return response()->json(['message' => translate('Delivery_unavailable_for_this_country')], 403);
 
@@ -506,6 +506,7 @@ class OrderController extends Controller
     {
         $orderDetails = OrderDetail::find($request->id);
         $refund = RefundRequest::where('customer_id', $request->user()->id)
+            ->with(['refundStatus'])
             ->where('order_details_id', $orderDetails->id)->get();
 
         $order = Order::find($orderDetails->order_id);

@@ -451,7 +451,7 @@ class ProductService
         $processedImages = $this->getProcessedUpdateImages(request: $request, product: $product);
         $combinations = $this->getCombinations($this->getOptions(request: $request));
         $variations = $this->getVariations(request: $request, combinations: $combinations);
-        $stockCount = count($combinations[0]) > 0 ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
+        $stockCount = isset($combinations[0]) && count($combinations[0]) > 0 ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
 
         if ($request->has('extensions_type') && $request->has('digital_product_variant_key')) {
             $digitalFile = null;
@@ -953,5 +953,22 @@ class ProductService
             'status' => $type == 'restocked' ? 'product_restocked' : 'product_update',
         ];
         event(new RestockProductNotificationEvent(data: $data));
+    }
+
+    public function validateStockClearanceProductDiscount($stockClearanceProduct): bool
+    {
+        if ($stockClearanceProduct && $stockClearanceProduct['discount_type'] == 'flat' && $stockClearanceProduct?->setup && $stockClearanceProduct?->setup?->discount_type == 'product_wise') {
+            $minimumPrice = $stockClearanceProduct?->product?->unit_price;
+            foreach ((json_decode($stockClearanceProduct?->product?->variation, true) ?? []) as $variation) {
+                if ($variation['price'] < $minimumPrice) {
+                    $minimumPrice = $variation['price'];
+                }
+            }
+
+            if ($minimumPrice < $stockClearanceProduct['discount_amount']) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -166,9 +166,16 @@
                                            class="media align-items-center gap-2">
                                             <img src="{{ getStorageImages(path:$product->thumbnail_full_url,type:'backend-product')}}"
                                                  class="avatar border object-fit-cover" alt="">
-                                            <span class="media-body title-color hover-c1">
-                                            {{ Str::limit($product['name'], 20) }}
-                                        </span>
+                                        <div>
+                                            <div class="media-body title-color hover-c1">
+                                                {{ Str::limit($product['name'], 20) }}
+                                            </div>
+                                            @if($product?->clearanceSale)
+                                                <div class="badge badge-soft-warning user-select-none">
+                                                    {{ translate('Clearance_Sale') }}
+                                                </div>
+                                            @endif
+                                        </div>
                                         </a>
                                     </td>
                                     <td class="text-center">

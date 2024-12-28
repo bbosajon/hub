@@ -58,7 +58,7 @@ class CouponController extends Controller
 
         if ($coupon && (($coupon->coupon_type == 'first_order') || ($coupon->coupon_type == 'discount_on_purchase' && ($coupon->customer_id == '0' || $coupon->customer_id == auth('customer')->id())))) {
             $total = 0;
-            foreach (CartManager::get_cart(type: 'checked') as $cart) {
+            foreach (CartManager::getCartListQuery(type: 'checked') as $cart) {
                 if ($coupon->seller_id == '0' || (is_null($coupon->seller_id) && $cart->seller_is == 'admin') || ($coupon->seller_id == $cart->seller_id && $cart->seller_is == 'seller')) {
                     $product_subtotal = $cart['price'] * $cart['quantity'];
                     $total += $product_subtotal;
@@ -87,7 +87,7 @@ class CouponController extends Controller
         } elseif ($coupon && $coupon->coupon_type == 'free_delivery' && ($coupon->customer_id == '0' || $coupon->customer_id == auth('customer')->id())) {
             $total = 0;
             $shipping_fee = 0;
-            foreach (CartManager::get_cart(type: 'checked') as $cart) {
+            foreach (CartManager::getCartListQuery(type: 'checked') as $cart) {
                 if ($coupon->seller_id == '0' || (is_null($coupon->seller_id) && $cart->seller_is == 'admin') || ($coupon->seller_id == $cart->seller_id && $cart->seller_is == 'seller')) {
                     $product_subtotal = $cart['price'] * $cart['quantity'];
                     $total += $product_subtotal;

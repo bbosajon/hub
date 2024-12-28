@@ -288,13 +288,13 @@ class PaymentController extends Controller
             $shippingCostSaved = 0;
             foreach ($cart_group_ids as $group_id) {
                 $cart_amount += CartManager::api_cart_grand_total($request, $group_id);
-                $shippingCostSaved += CartManager::get_shipping_cost_saved_for_free_delivery(groupId: $group_id, type: 'checked');
+                $shippingCostSaved += CartManager::getShippingCostSavedForFreeDelivery(groupId: $group_id, type: 'checked');
             }
             $paymentAmount = $cart_amount - $request['coupon_discount'] - $shippingCostSaved;
         } else {
             $discount = session()->has('coupon_discount') ? session('coupon_discount') : 0;
             $orderWiseShippingDiscount = CartManager::order_wise_shipping_discount();
-            $shippingCostSaved = CartManager::get_shipping_cost_saved_for_free_delivery(type: 'checked');
+            $shippingCostSaved = CartManager::getShippingCostSavedForFreeDelivery(type: 'checked');
             $paymentAmount = CartManager::cart_grand_total(type: 'checked') - $discount - $orderWiseShippingDiscount - $shippingCostSaved;
         }
 

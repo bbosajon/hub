@@ -7,7 +7,7 @@ return [
     'icon' => '<i class="fa-solid fa-screwdriver-wrench"></i>',
     'index' => 0,
     'path' => 'theme_route',
-    'comfortable_panel_version' => '14.9.1',
+    'comfortable_panel_version' => '15.0',
     'route_list' => [
         [
             'name' => 'Promotional_Banners',

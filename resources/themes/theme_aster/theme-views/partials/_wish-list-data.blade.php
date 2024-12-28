@@ -17,9 +17,9 @@
                                     <h6 class="text-truncate text-capitalize width--20ch link-hover-base">{{$product['name']}}</h6>
                                 </a>
                             </div>
-                            @if($brand_setting)
+                            @if($brand_setting && $product->product_type != 'digital')
                                 <div class="media-body">
-                                    <h6 class="text-truncate width--10">{{$product->brand?$product->brand['name']:''}} </h6>
+                                    <h6 class="text-truncate width--10">{{$product?->brand ? $product->brand['name']:'' }} </h6>
                                 </div>
                             @endif
                         </div>

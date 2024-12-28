@@ -1,4 +1,4 @@
-@extends('layouts.back-end.app')
+z@extends('layouts.back-end.app')
 
 @section('title', translate('order_Details'))
 
@@ -311,7 +311,7 @@
                                 {{ translate('customer_information') }}
                             </h4>
 
-                            <div class="media flex-wrap gap-3">
+                            <div class="media flex-wrap gap-3 align-items-center">
                                 <div class="">
                                     <img class="avatar rounded-circle avatar-70"
                                          src="{{getStorageImages(path: $order->customer->image_full_url,type:'backend-profile')}}"
@@ -319,10 +319,12 @@
                                 </div>
                                 <div class="media-body d-flex flex-column gap-1">
                                     <span
-                                        class="title-color hover-c1"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></span>
-                                    <span
-                                        class="title-color break-all"><strong>{{$order->customer['phone']}}</strong></span>
-                                    <span class="title-color break-all">{{$order->customer['email']}}</span>
+                                        class="title-color hover-c1 text-capitalize"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></span>
+                                    @if($order->customer->id != 0)
+                                        <span
+                                            class="title-color break-all"><strong>{{$order->customer['phone']}}</strong></span>
+                                        <span class="title-color break-all">{{$order->customer['email']}}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

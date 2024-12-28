@@ -476,7 +476,7 @@ class WebController extends Controller
         $order = Order::find(session('order_id'));
         $couponDiscount = session()->has('coupon_discount') ? session('coupon_discount') : 0;
         $orderWiseShippingDiscount = CartManager::order_wise_shipping_discount();
-        $getShippingCostSavedForFreeDelivery = CartManager::get_shipping_cost_saved_for_free_delivery(type: 'checked');
+        $getShippingCostSavedForFreeDelivery = CartManager::getShippingCostSavedForFreeDelivery(type: 'checked');
         $amount = CartManager::cart_grand_total(type: 'checked') - $couponDiscount - $orderWiseShippingDiscount - $getShippingCostSavedForFreeDelivery;
         $inr = Currency::where(['symbol' => '₹'])->first();
         $usd = Currency::where(['code' => 'USD'])->first();
@@ -484,15 +484,34 @@ class WebController extends Controller
 
         $offlinePaymentMethods = OfflinePaymentMethod::where('status', 1)->get();
         $paymentGatewayPublishedStatus = config('get_payment_publish_status') ?? 0;
+        $offlinePaymentStatus = getWebConfig(name: 'offline_payment');
+
+        $availablePaymentMethod = [];
+
+        $cashOnDeliveryStatus = getWebConfig(name: 'cash_on_delivery');
+        if ($cashOnDeliveryStatus && $cashOnDeliveryStatus['status'] && $cashOnDeliveryBtnShow) {
+            $availablePaymentMethod = ['cash_on_delivery'];
+        }
+
+        if (getWebConfig(name: 'digital_payment') && count(payment_gateways()) > 0) {
+            $availablePaymentMethod = ['payment_gateways'];
+        }
+
+        if ($offlinePaymentStatus && $offlinePaymentStatus['status'] == 1 && count($offlinePaymentMethods) > 0) {
+            $availablePaymentMethod = ['offline_payment'];
+        }
+        if (auth('customer')->check() && getWebConfig(name: 'wallet_status')) {
+            $availablePaymentMethod = ['wallet_status'];
+        }
 
         if (session()->has('address_id') && session()->has('billing_address_id')) {
             return view(VIEW_FILE_NAMES['payment_details'], [
                 'cashOnDeliveryBtnShow' => $cashOnDeliveryBtnShow,
                 'order' => $order,
-                'cash_on_delivery' => getWebConfig(name: 'cash_on_delivery'),
+                'cash_on_delivery' => $cashOnDeliveryStatus,
                 'digital_payment' => getWebConfig(name: 'digital_payment'),
                 'wallet_status' => getWebConfig(name: 'wallet_status'),
-                'offline_payment' => getWebConfig(name: 'offline_payment'),
+                'offline_payment' => $offlinePaymentStatus,
                 'coupon_discount' => $couponDiscount,
                 'amount' => $amount,
                 'inr' => $inr,
@@ -500,7 +519,8 @@ class WebController extends Controller
                 'myr' => $myr,
                 'paymentGatewayPublishedStatus' => $paymentGatewayPublishedStatus,
                 'payment_gateways_list' => payment_gateways(),
-                'offline_payment_methods' => $offlinePaymentMethods
+                'offline_payment_methods' => $offlinePaymentMethods,
+                'activeMinimumMethods' => count($availablePaymentMethod) > 0,
             ]);
         }
 
@@ -745,7 +765,7 @@ class WebController extends Controller
     {
         $discount = session()->has('coupon_discount') ? session('coupon_discount') : 0;
         $orderWiseShippingDiscount = CartManager::order_wise_shipping_discount();
-        $shippingCostSaved = CartManager::get_shipping_cost_saved_for_free_delivery(type: 'checked');
+        $shippingCostSaved = CartManager::getShippingCostSavedForFreeDelivery(type: 'checked');
         $paymentAmount = CartManager::cart_grand_total(type: 'checked') - $discount - $orderWiseShippingDiscount - $shippingCostSaved;
 
         $user = Helpers::getCustomerInformation($request);
@@ -1056,7 +1076,9 @@ class WebController extends Controller
 
         $wishlists = Wishlist::with([
             'productFullInfo' => function ($query) {
-                $query->with(['digitalVariation']);
+                $query->with(['digitalVariation', 'clearanceSale' => function ($query) {
+                    $query->active();
+                }]);
             },
             'productFullInfo.compareList' => function ($query) {
                 return $query->where('user_id', auth('customer')->id() ?? 0);

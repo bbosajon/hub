@@ -78,7 +78,7 @@ class SellerController extends Controller
         return response()->json($data, 200);
     }
 
-    public function get_seller_products($seller_id, Request $request): JsonResponse
+    public function getVendorProducts($seller_id, Request $request): JsonResponse
     {
         $products = ProductManager::get_seller_products($seller_id, $request);
         $productsList = $products->total() > 0 ? Helpers::product_data_formatting($products->items(), true) : [];
@@ -208,7 +208,9 @@ class SellerController extends Controller
     public function get_sellers_featured_product($seller_id, Request $request)
     {
         $user = Helpers::getCustomerInformation($request);
-        $featuredProducts = Product::active()->with('reviews', 'rating')
+        $featuredProducts = Product::active()->with(['reviews', 'rating', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
             ->withCount(['wishList' => function ($query) use ($user) {
                 $query->where('customer_id', $user != 'offline' ? $user->id : '0');
             }])

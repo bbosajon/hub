@@ -16,19 +16,25 @@ class DealOfTheDayController extends Controller
         $dealOfTheDay = DealOfTheDay::where(['status' => 1])->whereHas('product')->where('deal_of_the_days.status', 1)->first();
 
         if (isset($dealOfTheDay)) {
-            $product = Product::active()->with(['rating'])
+            $product = Product::active()->with(['rating', 'clearanceSale' => function ($query) {
+                    return $query->active();
+                }])
                 ->withCount(['reviews' => function ($query) {
                     $query->active()->whereNull('delivery_man_id');
                 }])->find($dealOfTheDay->product_id);
 
             if (!isset($product)) {
-                $product = Product::active()->with(['rating'])
+                $product = Product::active()->with(['rating', 'clearanceSale' => function ($query) {
+                        return $query->active();
+                    }])
                     ->withCount(['reviews' => function ($query) {
                         $query->active()->whereNull('delivery_man_id');
                     }])->inRandomOrder()->first();
             }
         } else {
-            $product = Product::active()->with(['rating'])
+            $product = Product::active()->with(['rating', 'clearanceSale' => function ($query) {
+                    return $query->active();
+                }])
                 ->withCount(['reviews' => function ($query) {
                     $query->active()->whereNull('delivery_man_id');
                 }])->inRandomOrder()->first();

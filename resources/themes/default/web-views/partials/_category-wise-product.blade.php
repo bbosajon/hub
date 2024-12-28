@@ -21,7 +21,7 @@
                 <div class="carousel-wrap-2 d-none d-sm-block">
                     <div class="owl-carousel owl-theme category-wise-product-slider">
                         @foreach($category['products'] as $key => $product)
-                            @include('web-views.partials._category-single-product',['product'=>$product,'decimal_point_settings'=>$decimal_point_settings])
+                            @include('web-views.partials._category-single-product',['product' => $product])
                         @endforeach
                     </div>
                 </div>
@@ -30,7 +30,7 @@
                         @foreach($category['products'] as $key=>$product)
                             @if($key < 4)
                                 <div class="col-6">
-                                    @include('web-views.partials._category-single-product',['product'=>$product,'decimal_point_settings'=>$decimal_point_settings])
+                                    @include('web-views.partials._category-single-product', ['product'=>$product])
                                 </div>
                             @endif
                         @endforeach

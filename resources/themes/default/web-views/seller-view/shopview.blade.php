@@ -3,7 +3,6 @@
 @section('title',translate('shop_Page'))
 
 @push('css_or_js')
-
     @if($shopInfoArray['id'] != 0)
         <meta property="og:image" content="{{ $shopInfoArray['image_full_url']['path'] }}"/>
         <meta property="og:title" content="{{ $shopInfoArray['name']}} "/>
@@ -31,7 +30,6 @@
 @endpush
 
 @section('content')
-
     @php($decimalPointSettings = getWebConfig(name: 'decimal_point_settings'))
 
     <div class="container py-4 __inline-67">
@@ -53,17 +51,30 @@
         @include('web-views.seller-view.shop-info-card', ['displayClass' => 'd-md-none border mt-3'])
 
         <div class="row align-items-center g-3 py-4">
-            <div class="col-12 col-md-4">
+            <div class="col-md-8 col-lg-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-center w-max-md-100 me-auto gap-3">
-                    <h3 class="widget-title align-self-center font-bold fs-16 my-0">{{translate('Filters')}}</h3>
-                    <div
-                        class="filter-ico-button btn btn--primary p-2 m-0 d-lg-none d-flex align-items-center filter-show-btn">
+                    <nav>
+                        <div class="nav nav-tabs mb-0" id="nav-tab" role="tablist">
+                          <a class="nav-link {{ request('offer_type') != 'clearance_sale' ? 'active' : '' }}"
+                             href="{{ route('shopView',['id' => ($shopInfoArray['id'] != 0 ? $shopInfoArray['id'] : 0)]) }}">
+                            <h3 class="widget-title align-self-center font-bold fs-16 text-capitalize my-0">{{translate('all_product')}}</h3>
+                          </a>
+                            @if($stockClearanceSetup && $stockClearanceProducts > 0)
+                              <a class="nav-link {{ request('offer_type') == 'clearance_sale' ? 'active' : '' }}"
+                                 href="{{ route('shopView',['id' => ($shopInfoArray['id'] != 0 ? $shopInfoArray['id'] : 0), 'offer_type' => 'clearance_sale']) }}">
+                                <h3 class="widget-title align-self-center font-bold fs-16 text-capitalize my-0">{{translate('clearance_sale')}}</h3>
+                              </a>
+                            @endif
+                        </div>
+                    </nav>
+
+                    <div class="filter-ico-button btn btn--primary p-2 m-0 d-lg-none d-flex align-items-center filter-show-btn">
                         <i class="tio-filter"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="col-12 col-md-8">
+            <div class="col-md-4 col-lg-8">
                 <div class="d-flex flex-column flex-sm-row justify-content-end gap-3 m-0">
                     <form>
                         <div class="sorting-item justify-content-between pe-2 d-none d-lg-flex">
@@ -108,6 +119,10 @@
                                    name="search"
                                    value="{{ request('search') }}"
                                    placeholder="{{translate('search_products_from_this_store')}}">
+                            @if(request()->has('offer_type') && request('offer_type') == 'clearance_sale')
+                                <input type="hidden" name="offer_type" value="clearance_sale">
+                            @endif
+
                             <button type="submit" class="btn--primary btn">
                                 <i class="fa fa-search" aria-hidden="true"></i>
                             </button>
@@ -116,14 +131,12 @@
                 </div>
             </div>
         </div>
-
         <div class="row rtl">
-
-            @include('web-views.seller-view.partials._shop-sidebar')
+            @include('web-views.seller-view.partials._shop-sidebar', ['activeBrands' => $activeBrands])
 
             <div class="col-lg-9 product-div">
                 @if (count($products) > 0)
-                    <div class="row g-3" id="ajax-products">
+                    <div class="row g-3" id="ajax-products-view">
                         @include('web-views.products._ajax-products',['products'=>$products,'decimal_point_settings' => $decimalPointSettings])
                     </div>
                 @else
@@ -137,11 +150,11 @@
                 @endif
             </div>
         </div>
-
     </div>
 
     <span id="shop-sort-by-filter-url" data-url="{{url('/')}}/shopView/{{$shopInfoArray['id']}}"></span>
 
+    {{-- Modal --}}
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
          aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -176,20 +189,30 @@
     </div>
 
     <span id="products-search-data-backup"
+          data-page="{{ request('page') ?? 1 }}"
           data-url="{{ route('shopView',['id' => ($shopInfoArray['id'] != 0 ? $shopInfoArray['id'] : 0)]) }}"
           data-brand="{{ $data['brand_id'] ?? '' }}"
           data-category="{{ $data['category_id'] ?? '' }}"
           data-name="{{ request('search') ?? request('name') }}"
           data-from="{{ request('data_from') }}"
+          data-offer-type = "{{ request('offer_type') }}"
+          data-product-check="clearance_sale"
           data-sort="{{ request('sort_by') }}"
           data-product-type="{{ request('product_type') ?? 'all' }}"
           data-message="{{ translate('items_found') }}"
           data-publishing-house-id="{{ request('publishing_house_id') }}"
           data-author-id="{{ request('author_id') }}"
+          data-offer="{{ request('offer_type') ?? '' }}"
     ></span>
 
 @endsection
-
 @push('script')
     <script src="{{ theme_asset(path: 'public/assets/front-end/js/product-view.js') }}"></script>
+    <script>
+        $('.close-icon').on('click', function () {
+            $("#shop-sidebar").toggleClass("show active");
+        });
+    </script>
 @endpush
+
+

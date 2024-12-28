@@ -324,7 +324,7 @@
                                 <div class="text-center">
                                     <img class="mb-3" src="{{dynamicAsset(path: 'public/assets/back-end/img/refund-reject.png')}}" alt="{{translate('refund_reject')}}">
                                     <h4 class="mb-4 mx-auto max-w-283">
-                                        {{translate('you_can_reject_that_refund_request_two_times').','.translate('then_you_ca_not_change_this_status').'.'}}
+                                        {{translate('you_can_reject_that_refund_request_two_times').', '.translate('then_you_can_not_change_this_status').'.'}}
                                     </h4>
                                 </div>
                                 <textarea class="form-control text-area-max-min" placeholder="{{translate('please_write_the_reject_reason').'...'}}" name="rejected_note" rows="3"></textarea>
@@ -350,7 +350,7 @@
                                 <div class="text-center">
                                     <img class="mb-3" src="{{dynamicAsset(path: 'public/assets/back-end/img/refund-approve.png')}}" alt="{{translate('refund_approve')}}">
                                     <h4 class="mb-4 mx-auto max-w-283">
-                                        {{translate('you_can_approve_that_refund_request_two_times').','.translate('then_you_ca_not_change_this_status').'.'}}
+                                        {{translate('you_can_approve_that_refund_request_two_times').', '.translate('then_you_can_not_change_this_status').'.'}}
                                     </h4>
                                 </div>
                                 <textarea class="form-control text-area-max-min" placeholder="{{translate('please_write_the_approve_reason').'...'}}" name="approved_note" rows="3"></textarea>

@@ -1,4 +1,4 @@
-<?php
+z<?php
 
 use App\Http\Controllers\RestAPI\v1\auth\CustomerAPIAuthController;
 use App\Http\Controllers\RestAPI\v1\auth\EmailVerificationController;
@@ -12,6 +12,7 @@ use App\Http\Controllers\RestAPI\v1\CartController;
 use App\Http\Controllers\RestAPI\v1\CategoryController;
 use App\Http\Controllers\RestAPI\v1\ChatController;
 use App\Http\Controllers\RestAPI\v1\ConfigController;
+use App\Http\Controllers\RestAPI\v1\CouponController;
 use App\Http\Controllers\RestAPI\v1\CustomerController;
 use App\Http\Controllers\RestAPI\v1\CustomerRestockRequestController;
 use App\Http\Controllers\RestAPI\v1\DealController;
@@ -165,7 +166,7 @@ Route::group(['namespace' => 'RestAPI\v1', 'prefix' => 'v1', 'middleware' => ['a
                 Route::get('featured', 'getFeaturedProductsList');
                 Route::get('top-rated', 'getTopRatedProducts');
                 Route::any('search', 'get_searched_products');
-                Route::post('filter', 'product_filter');
+                Route::post('filter', 'getProductsFilter');
                 Route::any('suggestion-product', 'get_suggestion_product');
                 Route::get('details/{slug}', 'getProductDetails');
                 Route::get('related-products/{product_id}', 'get_related_products');
@@ -178,12 +179,13 @@ Route::group(['namespace' => 'RestAPI\v1', 'prefix' => 'v1', 'middleware' => ['a
                 Route::get('most-searching', 'getMostSearchingProductsList');
                 Route::get('digital-author-list', 'getDigitalProductsAuthorList');
                 Route::get('digital-publishing-house-list', 'getDigitalPublishingHouseList');
+                Route::get('clearance-sale', 'getClearanceSale');
             });
         });
 
         Route::group(['prefix' => 'seller'], function () {
             Route::controller(SellerController::class)->group(function () {
-                Route::get('{seller_id}/products', 'get_seller_products');
+                Route::get('{seller_id}/products', 'getVendorProducts');
                 Route::get('{seller_id}/seller-best-selling-products', 'get_seller_best_selling_products');
                 Route::get('{seller_id}/seller-featured-product', 'get_sellers_featured_product');
                 Route::get('{seller_id}/seller-recommended-products', 'get_sellers_recommended_products');
@@ -364,9 +366,12 @@ Route::group(['namespace' => 'RestAPI\v1', 'prefix' => 'v1', 'middleware' => ['a
     Route::group(['prefix' => 'coupon', 'middleware' => 'auth:api'], function () {
         Route::get('apply', 'CouponController@apply');
     });
-    Route::get('coupon/list', 'CouponController@list')->middleware('auth:api');
-    Route::get('coupon/applicable-list', 'CouponController@applicable_list')->middleware('auth:api');
-    Route::get('coupons/{seller_id}/seller-wise-coupons', 'CouponController@get_seller_wise_coupon');
+
+    Route::controller(CouponController::class)->group(function () {
+        Route::get('coupon/list', 'list')->middleware('auth:api');
+        Route::get('coupon/applicable-list', 'applicable_list')->middleware('auth:api');
+        Route::get('coupons/{seller_id}/seller-wise-coupons', 'getSellerWiseCoupon');
+    });
 
     Route::get('get-guest-id', 'GeneralController@get_guest_id');
 
