@@ -147,7 +147,7 @@
                                                         @endif
                                                 </span>
                                                 </h6>
-                                                <h6 class="text-primary fs-12">{{ translate('code').':' }}{{ $coupon->code }}</h6>
+                                                <h6 class="text-primary fs-12">{{ translate('code').': ' }}{{ $coupon->code }}</h6>
                                             </div>
                                         </div>
                                     @endforeach

@@ -38,7 +38,7 @@
                                         @if(count($order['details']) > 3)
                                             <h6 class="fw-medium fs-12 text-center">+{{ count($order['details'])-3 }}
                                                 <br>
-                                                <a href="{{ route('account-order-details', ['order_id'=>$order['id']]) }}">{{ translate('more') }}</a>
+                                                <a href="{{ route('account-order-details', ['id'=>$order['id']]) }}">{{ translate('more') }}</a>
                                             </h6>
                                         @endif
                                     </div>

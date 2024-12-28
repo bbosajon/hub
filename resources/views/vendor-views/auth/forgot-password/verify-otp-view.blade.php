@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="auth-wrapper-right">
-            <div class="auth-wrapper-form">
+            <div class="auth-wrapper-form text-center">
                 <div class="__inline-20">
                     <div class="d-block d-lg-none">
                         <a class="d-inline-flex mb-3" href="{{ route('home') }}">
@@ -58,18 +58,23 @@
                           id="admin-login-form">
                         @csrf
                         <div class="js-form-message form-group mt-5">
-                            <div class="form-group">
+                            <div class="form-group text-center">
                                 <label>{{translate('enter_your_OTP')}}</label>
-                                <div id="divOuter">
-                                    <div id="divInner">
-                                        <input id="partitioned" class="form-control pl-2 font-weight-bold" name="otp" type="text" maxlength="4"/>
+                                <div id="divOuter" class="m-auto">
+                                    <div id="divInner" class="my-3">
+                                        <input id="partitioned" class="form-control font-weight-bold fs-24" name="otp" type="text" maxlength="4"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-lg btn-block btn--primary" disabled>
-                            {{ translate('proceed')}}
-                        </button>
+                        <div class="d-flex justify-content-center align-items-baseline flex-wrap gap-2">
+                            <a class="btn btn-lg btn-block btn-secondary w-auto flex-grow-1" href="{{ route('vendor.auth.forgot-password.index') }}">
+                                {{ translate('back')}}
+                            </a>
+                            <button type="submit" class="btn btn-lg btn-block btn--primary w-auto flex-grow-1" disabled>
+                                {{ translate('proceed')}}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

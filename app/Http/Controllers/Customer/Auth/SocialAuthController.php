@@ -41,7 +41,13 @@ class SocialAuthController extends Controller
 
     public function handleProviderCallback(Request $request, $service)
     {
-        $userSocialData = Socialite::driver($service)->stateless()->user();
+        try {
+            $userSocialData = Socialite::driver($service)->stateless()->user();
+        } catch (\Exception $e) {
+            Toastr::error(translate('Login_failed'));
+            return redirect()->route('home');
+        }
+
         $user = $this->customerRepo->getFirstWhere(params: ['email' => $userSocialData->getEmail()]);
 
         if (!$user || $user['login_medium'] != $service) {

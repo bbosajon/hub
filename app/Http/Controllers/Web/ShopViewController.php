@@ -6,24 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Brand;
 use App\Models\Category;
-use App\Models\Coupon;
-use App\Models\FlashDeal;
-use App\Models\FlashDealProduct;
 use App\Models\Order;
-use App\Models\OrderDetail;
 use App\Models\Product;
 use App\Models\PublishingHouse;
 use App\Models\Review;
 use App\Models\Seller;
 use App\Models\Shop;
-use App\Models\ShopFollower;
-use App\Models\Wishlist;
+use App\Models\StockClearanceProduct;
+use App\Models\StockClearanceSetup;
 use App\Utils\CartManager;
 use App\Utils\CategoryManager;
-use App\Utils\Helpers;
 use App\Utils\ProductManager;
 use Brian2694\Toastr\Facades\Toastr;
-use Doctrine\DBAL\Exception\DatabaseDoesNotExist;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -32,11 +26,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ShopViewController extends Controller
 {
-    // For seller Shop
     public function getShopInfoArray($shopId, $shopProducts, $sellerType, $sellerId): array
     {
         $totalOrder = Order::when($sellerType == 'admin', function ($query) {
@@ -94,19 +86,19 @@ class ShopViewController extends Controller
         $shopAllProducts = ProductManager::getAllProductsData($request, $productUserID, $productAddedBy);
         $productListData = ProductManager::getProductListData($request, $productUserID, $productAddedBy);
         $categories = self::getShopCategoriesList(products: $shopAllProducts);
-        $brands = self::getShopBrandsList(products: $shopAllProducts, sellerType: $productAddedBy, sellerId: $productUserID);
+        $brands = self::getShopBrandsList(request: $request, products: $shopAllProducts, sellerType: $productAddedBy, sellerId: $productUserID);
         $shopPublishingHouses = ProductManager::getPublishingHouseList(productIds: $shopAllProducts->pluck('id')->toArray(), vendorId: $productUserID);
         $digitalProductAuthors = ProductManager::getProductAuthorList(productIds: $shopAllProducts->pluck('id')->toArray(), vendorId: $productUserID);
         $shopInfoArray = self::getShopInfoArray(shopId: $id, shopProducts: $shopAllProducts, sellerType: $productAddedBy, sellerId: $productUserID);
-
         $products = $productListData->paginate(20)->appends($request->all());
+        $stockClearanceProducts = StockClearanceProduct::active()->where(['shop_id'=> $id])->count();
+        $stockClearanceSetup = StockClearanceSetup::where(['shop_id'=> $id])->first()?->is_active ?? 0;
 
         if ($request->ajax()) {
             return response()->json([
-                'view' => view(VIEW_FILE_NAMES['products__ajax_partials'], compact('products', 'categories'))->render(),
+                'view' => view(VIEW_FILE_NAMES['products__ajax_partials'], compact('products', 'categories'))->render()
             ], 200);
         }
-
         return view(VIEW_FILE_NAMES['shop_view_page'], [
             'products' => $products,
             'categories' => $categories,
@@ -115,6 +107,8 @@ class ShopViewController extends Controller
             'shopInfoArray'=> $shopInfoArray,
             'shopPublishingHouses' => $shopPublishingHouses,
             'digitalProductAuthors' => $digitalProductAuthors,
+            'stockClearanceProducts' => $stockClearanceProducts,
+            'stockClearanceSetup' => $stockClearanceSetup,
         ]);
     }
 
@@ -126,7 +120,7 @@ class ShopViewController extends Controller
         $shopAllProducts = ProductManager::getAllProductsData($request, $productUserID, $productAddedBy);
         $productListData = ProductManager::getProductListData($request, $productUserID, $productAddedBy);
         $categories = self::getShopCategoriesList(products: $shopAllProducts);
-        $brands = self::getShopBrandsList(products: $shopAllProducts, sellerType: $productAddedBy, sellerId: $productUserID);
+        $brands = self::getShopBrandsList(request: $request,products: $shopAllProducts, sellerType: $productAddedBy, sellerId: $productUserID);
         $shopPublishingHouses = ProductManager::getPublishingHouseList(productIds: $shopAllProducts->pluck('id')->toArray(), vendorId: $productUserID);
         $digitalProductAuthors = ProductManager::getProductAuthorList(productIds: $shopAllProducts->pluck('id')->toArray(), vendorId: $productUserID);
         $shopInfoArray = self::getShopInfoArray(shopId: $id, shopProducts: $shopAllProducts, sellerType: $productAddedBy, sellerId: $productUserID);
@@ -160,7 +154,6 @@ class ShopViewController extends Controller
         $averageRating = $reviewData->avg('rating');
         $totalReviews = $reviewData->count();
 
-        // color & seller wise review start
         $rattingStatusPositive = 0;
         $rattingStatusGood = 0;
         $rattingStatusNeutral = 0;
@@ -204,6 +197,8 @@ class ShopViewController extends Controller
 
         $featuredProductsList = ProductManager::getPriorityWiseFeaturedProductsQuery(query: $featuredProductQuery, dataLimit: 'all');
         $products = $productListData->paginate(20)->appends($request->all());
+        $stockClearanceProducts = StockClearanceProduct::active()->where('shop_id', $id)->count();
+        $stockClearanceSetup = StockClearanceSetup::where(['shop_id'=> $id])->first()?->is_active ?? 0;
 
         $data = [
             'id' => $request['id'],
@@ -223,7 +218,7 @@ class ShopViewController extends Controller
         }
 
         return view(VIEW_FILE_NAMES['shop_view_page'], compact('products',  'categories',
-            'products_for_review', 'featuredProductsList', 'brands', 'data', 'ratings', 'rattingStatusArray'))
+            'products_for_review', 'featuredProductsList', 'brands', 'data', 'ratings', 'rattingStatusArray', 'stockClearanceProducts', 'stockClearanceSetup'))
             ->with('seller_id', $id)
             ->with('total_review', $totalReviews)
             ->with('avg_rating', $averageRating)
@@ -235,12 +230,13 @@ class ShopViewController extends Controller
 
     public function theme_fashion($request, $id): View|JsonResponse|Redirector|RedirectResponse
     {
+        $singlePageProductCount = $request['per_page_product'] ?? 25;
         self::checkShopExistence($id);
         $productAddedBy = $id == 0 ? 'admin' : 'seller';
         $productUserID = $id == 0 ? $id : Shop::where('id', $id)->first()->seller_id;
         $productListData = ProductManager::getProductListData($request, $productUserID, $productAddedBy);
         $categories = self::getShopCategoriesList(products: $productListData);
-        $brands = self::getShopBrandsList(products: $productListData, sellerType: $productAddedBy, sellerId: $productUserID);
+        $brands = self::getShopBrandsList(request: $request,products: $productListData, sellerType: $productAddedBy, sellerId: $productUserID);
         $shopPublishingHouses = ProductManager::getPublishingHouseList(productIds: $productListData->pluck('id')->toArray(), vendorId: $productUserID);
         $digitalProductAuthors = ProductManager::getProductAuthorList(productIds: $productListData->pluck('id')->toArray(), vendorId: $productUserID);
         $shopInfoArray = self::getShopInfoArray(shopId: $id, shopProducts: $productListData, sellerType: $productAddedBy, sellerId: $productUserID);
@@ -259,7 +255,6 @@ class ShopViewController extends Controller
         $averageRating = $reviewData->avg('rating');
         $totalReviews = $reviewData->count();
 
-        // color & seller wise review start
         $rattingStatusPositive = 0;
         $rattingStatusGood = 0;
         $rattingStatusNeutral = 0;
@@ -304,10 +299,17 @@ class ShopViewController extends Controller
 
         $featuredProductsList = ProductManager::getPriorityWiseFeaturedProductsQuery(query: $featuredProductsList, dataLimit: 'all');
 
-        //finding category ids
         $products = Product::active()
             ->when($id == 0, function ($query) {
                 return $query->where(['added_by' => 'admin']);
+            })
+            ->when($request['offer_type'] == 'clearance_sale', function ($query) {
+                $stockClearanceProductIds = StockClearanceProduct::active()->pluck('product_id')->toArray();
+                return $query->whereIn('id', $stockClearanceProductIds);
+            })
+            ->when($request['offer_type'] == 'clearance_sale' && $productUserID && $productAddedBy == 'seller', function ($query) use ($productUserID, $productAddedBy) {
+                $stockClearanceProductIds = StockClearanceProduct::active()->pluck('product_id')->toArray();
+                return $query->where(['added_by' => $productAddedBy, 'user_id' => $productUserID])->whereIn('id', $stockClearanceProductIds);
             })
             ->when($id != 0, function ($query) use ($id) {
                 return $query->where(['added_by' => 'seller'])
@@ -328,47 +330,55 @@ class ShopViewController extends Controller
         }
 
         $categories = Category::with(['product' => function ($query) {
-            return $query->active()->withCount(['orderDetails']);
-        }])->withCount(['product' => function ($query) use ($id) {
-            $query->when($id == 0, function ($query) {
-                $query->where(['added_by' => 'admin', 'status' => '1']);
-            })->when($id != 0, function ($query) use ($id) {
-                $query->where(['added_by' => 'seller', 'user_id' => $id, 'status' => '1']);
-            });
-        }])->with(['childes' => function ($query) use ($id) {
-            $query->with(['childes' => function ($query) use ($id) {
-                $query->withCount(['subSubCategoryProduct' => function ($query) use ($id) {
-                    $query->when($id == 0, function ($query) {
-                        $query->where(['added_by' => 'admin', 'status' => '1']);
-                    })->when($id != 0, function ($query) use ($id) {
-                        $query->where(['added_by' => 'seller', 'user_id' => $id, 'status' => '1']);
-                    });
-                }])->where('position', 2);
+                return $query->active()->withCount(['orderDetails']);
             }])
-                ->withCount(['subCategoryProduct' => function ($query) use ($id) {
-                    $query->when($id == 0, function ($query) {
-                        $query->where(['added_by' => 'admin', 'status' => '1']);
-                    })->when($id != 0, function ($query) use ($id) {
-                        $query->where(['added_by' => 'seller', 'user_id' => $id, 'status' => '1']);
+            ->withCount(['product' => function ($query) use ($id, $request, $productUserID, $productAddedBy) {
+                return $query->when($id == 0, function ($query) {
+                    return $query->where(['added_by' => 'admin', 'status' => '1']);
+                })->when($id != 0, function ($query) use ($id) {
+                    return $query->where(['added_by' => 'seller', 'user_id' => $id, 'status' => '1']);
+                })->when(request('offer_type') == 'clearance_sale', function ($query) {
+                    return $query->whereHas('clearanceSale', function ($query) {
+                        return $query->active();
                     });
-                }])->where('position', 1);
-        }, 'childes.childes'])
+                });
+            }])
+            ->with(['childes' => function ($query) use ($id, $request, $productUserID, $productAddedBy) {
+                $query->with(['childes' => function ($query) use ($id, $request, $productUserID, $productAddedBy) {
+                    return $query->withCount(['subSubCategoryProduct' => function ($query) use ($id, $request, $productUserID, $productAddedBy) {
+                        return $query->when($id == 0, function ($query) {
+                            return $query->where(['added_by' => 'admin', 'status' => '1']);
+                        })->when($id != 0, function ($query) use ($id) {
+                            return $query->where(['added_by' => 'seller', 'user_id' => $id, 'status' => '1']);
+                        })->when(request('offer_type') == 'clearance_sale', function ($query) {
+                            return $query->whereHas('clearanceSale', function ($query) {
+                                return $query->active();
+                            });
+                        });
+                    }])->where('position', 2);
+                }])
+                    ->withCount(['subCategoryProduct' => function ($query) use ($id, $request, $productUserID, $productAddedBy) {
+                        return $query->when($id == 0, function ($query) {
+                            return $query->where(['added_by' => 'admin', 'status' => '1']);
+                        })->when($id != 0, function ($query) use ($id) {
+                            return $query->where(['added_by' => 'seller', 'user_id' => $id, 'status' => '1']);
+                        })->when(request('offer_type') == 'clearance_sale', function ($query) {
+                            return $query->whereHas('clearanceSale', function ($query) {
+                                return $query->active();
+                            });
+                        });
+                    }])->where('position', 1);
+            }, 'childes.childes' => function ($query) {
+                return $query->when(request('offer_type') == 'clearance_sale', function ($query) {
+                    return $query->whereHas('clearanceSale', function ($query) {
+                        return $query->active();
+                    });
+                });
+            }])
             ->whereIn('id', $categoriesIdArray)
             ->where('position', 0)->get();
 
         $categories = CategoryManager::getPriorityWiseCategorySortQuery(query: $categories);
-
-        //brand start
-        $brand_info = [];
-        foreach ($products as $product) {
-            $brand_info[] = $product['brand_id'];
-        }
-
-        $brands = Brand::active()->whereIn('id', $brand_info)->withCount('brandProducts')->latest()->get();
-        foreach ($brands as $brand) {
-            $count = $products->where('brand_id', $brand->id)->count();
-            $brand->count = $count;
-        }
 
         if ($id == 0) {
             $shop = ['id' => 0, 'name' => getWebConfig(name: 'company_name')];
@@ -391,10 +401,10 @@ class ShopViewController extends Controller
         $inhouse_vacation_end_date = $id == 0 ? $inhouse_vacation['vacation_end_date'] : null;
         $inHouseVacationStatus = $id == 0 ? $inhouse_vacation['status'] : false;
         $inhouse_temporary_close = $id == 0 ? $temporary_close['status'] : false;
+        $stockClearanceProducts = StockClearanceProduct::active()->where('shop_id', $id)->count();
+        $stockClearanceSetup = StockClearanceSetup::where(['shop_id'=> $id])->first()?->is_active ?? 0;
 
-        return view(VIEW_FILE_NAMES['shop_view_page'], compact('products', 'shop', 'categories', 'current_date', 'seller_vacation_start_date', 'seller_vacation_status',
-            'seller_vacation_end_date', 'seller_temporary_close', 'inhouse_vacation_start_date', 'inhouse_vacation_end_date', 'inHouseVacationStatus', 'inhouse_temporary_close',
-            'products_for_review', 'featuredProductsList', 'brands', 'rattingStatusArray', 'reviews', 'allProductsColorList', 'paginate_count', 'shopPublishingHouses', 'digitalProductAuthors'))
+        return view(VIEW_FILE_NAMES['shop_view_page'], compact('products', 'shop', 'categories', 'current_date', 'seller_vacation_start_date', 'seller_vacation_status', 'seller_vacation_end_date', 'seller_temporary_close', 'inhouse_vacation_start_date', 'inhouse_vacation_end_date', 'inHouseVacationStatus', 'inhouse_temporary_close', 'products_for_review', 'featuredProductsList', 'brands', 'rattingStatusArray', 'reviews', 'allProductsColorList', 'paginate_count', 'shopPublishingHouses', 'digitalProductAuthors', 'stockClearanceProducts', 'stockClearanceSetup', 'singlePageProductCount'))
             ->with('seller_id', $id)
             ->with('total_review', $totalReviews)
             ->with('avg_rating', $averageRating)
@@ -440,15 +450,33 @@ class ShopViewController extends Controller
         }
 
         $categories = Category::with(['product' => function ($query) {
-            return $query->active()->withCount(['orderDetails']);
-        }])->with(['childes.childes'])->where('position', 0)->whereIn('id', $categoryIds)->get();
+                return $query->active()->withCount(['orderDetails']);
+            }])
+            ->with(['childes.childes' => function ($query) {
+                return $query->withCount(['product' => function ($query) {
+                    return $query->active()->when(request('offer_type') == 'clearance_sale', function ($query) {
+                        return $query->whereHas('clearanceSale', function ($query) {
+                            return $query->active();
+                        });
+                    });
+                }]);
+            }])->where('position', 0)
+            ->whereIn('id', $categoryIds)
+            ->withCount(['product' => function ($query) {
+                $query->active()->when(request('offer_type') == 'clearance_sale', function ($query) {
+                    return $query->whereHas('clearanceSale', function ($query) {
+                        return $query->active();
+                    });
+                });
+            }])
+            ->get();
         return CategoryManager::getPriorityWiseCategorySortQuery(query: $categories);
     }
 
-    public function getShopBrandsList($products, $sellerType, $sellerId)
+    public function getShopBrandsList($request, $products, $sellerType, $sellerId)
     {
         $brandIds = $products->pluck('brand_id')->toArray();
-        $brands = Brand::active()->whereIn('id', $brandIds)->with(['brandProducts' => function ($query) use ($sellerType, $sellerId) {
+        $brands = Brand::active()->whereIn('id', $brandIds)->with(['brandProducts' => function ($query) use ($sellerType, $sellerId,  $request) {
             return $query->active()->when($sellerType == 'admin', function ($query) use ($sellerType) {
                 return $query->where(['added_by' => $sellerType]);
             })
@@ -456,12 +484,23 @@ class ShopViewController extends Controller
                     return $query->where(['added_by' => $sellerType, 'user_id' => $sellerId]);
                 })->withCount(['orderDetails']);
         }])
-            ->withCount(['brandProducts' => function ($query) use ($sellerType, $sellerId) {
-                return $query->active()->when($sellerType == 'admin', function ($query) use ($sellerType) {
-                    return $query->where(['added_by' => $sellerType]);
-                })
-                    ->when($sellerId && $sellerType == 'seller', function ($query) use ($sellerId, $sellerType) {
+            ->withCount(['brandProducts' => function ($query) use ($sellerType, $sellerId, $request) {
+                    return $query->active()->when($sellerType == 'admin', function ($query) use ($sellerType) {
+                        return $query->where(['added_by' => $sellerType]);
+                    })
+                    ->when($sellerId && $sellerType == 'seller', function ($query) use ($sellerId, $sellerType, $request) {
                         return $query->where(['added_by' => $sellerType, 'user_id' => $sellerId]);
+                    })
+                    ->when($request['offer_type'] == 'clearance_sale', function ($query) use ($sellerId, $sellerType) {
+                        $stockClearanceProductIds = StockClearanceProduct::active()
+                            ->when($sellerId && $sellerType == 'admin', function ($query) use ($sellerId, $sellerType) {
+                                return $query->where(['added_by' => 'admin']);
+                            })
+                            ->when($sellerId && $sellerType == 'seller', function ($query) use ($sellerId, $sellerType) {
+                                return $query->where(['added_by' => 'vendor', 'user_id' => $sellerId]);
+                            })
+                            ->pluck('product_id')->toArray();
+                        return $query->whereIn('id', $stockClearanceProductIds);
                     });
             }])->get();
 
@@ -485,11 +524,9 @@ class ShopViewController extends Controller
         return $brands;
     }
 
-    /**
-     * For Theme fashion, ALl purpose
-     */
     public function filterProductsAjaxResponse(Request $request): JsonResponse
     {
+        $singlePageProductCount = $request['per_page_product'] ?? 25;
         if ($request->has('shop_id')) {
             $shopID = $request['shop_id'];
             self::checkShopExistence($shopID);
@@ -522,11 +559,10 @@ class ShopViewController extends Controller
 
         $rating = $request->rating ?? [];
         $productsCount = $productListData->count();
-        $paginateLimit = 25;
-        $paginateCount = ceil($productsCount / $paginateLimit);
+        $paginateCount = ceil($productsCount / $singlePageProductCount);
         $currentPage = $offset ?? Paginator::resolveCurrentPage('page');
-        $results = $productListData->forPage($currentPage, $paginateLimit);
-        $products = new LengthAwarePaginator(items: $results, total: $productsCount, perPage: $paginateLimit, currentPage: $currentPage, options: [
+        $results = $productListData->forPage($currentPage, $singlePageProductCount);
+        $products = new LengthAwarePaginator(items: $results, total: $productsCount, perPage: $singlePageProductCount, currentPage: $currentPage, options: [
             'path' => Paginator::resolveCurrentPath(),
             'appends' => $request->all(),
         ]);
@@ -547,7 +583,14 @@ class ShopViewController extends Controller
         }
 
         return response()->json([
-            'html_products' => view('theme-views.product._ajax-products', ['products' => $products, 'paginate_count' => $paginateCount, 'page' => ($request->page ?? 1), 'request_data' => $request->all(), 'data' => $data])->render(),
+            'html_products' => view('theme-views.product._ajax-products', [
+                'products' => $products,
+                'paginate_count' => $paginateCount,
+                'page' => ($request->page ?? 1),
+                'request_data' => $request->all(),
+                'singlePageProductCount' => $singlePageProductCount,
+                'data' => $data,
+            ])->render(),
             'html_tags' => view('theme-views.product._selected_filter_tags', [
                 'tags_category' => $category,
                 'tags_brands' => $brands,
@@ -557,6 +600,8 @@ class ShopViewController extends Controller
                 'sort_by' => $request['sort_by'],
             ])->render(),
             'products_count' => $productsCount,
+            'products' => $products,
+            'singlePageProductCount' => $singlePageProductCount,
         ]);
     }
 

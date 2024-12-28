@@ -198,9 +198,10 @@ class OrderController extends Controller
 
 
         $order->order_status = $request->order_status;
-        if ($request->order_status == 'delivered'){
+        if ($request->order_status == 'delivered') {
             $order->payment_status = 'paid';
-            OrderDetail::where('order_id', $order->id)->update(['delivery_status'=>'delivered','payment_status'=>'paid']);
+            Order::where('id', $order->id)->update(['is_pause' => 0]);
+            OrderDetail::where('order_id', $order->id)->update(['delivery_status' => 'delivered', 'payment_status' => 'paid']);
         }
         OrderManager::stock_update_on_order_status_change($order, $request->order_status);
         if ($request->order_status == 'delivered' && $order['seller_id'] != null) {

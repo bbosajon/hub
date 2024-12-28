@@ -52,6 +52,8 @@
                                     <input type="hidden" name="login_type" value="otp-login">
                                     @include("web-views.customer-views.auth.partials._phone")
 
+                                    @include("web-views.customer-views.auth.partials._recaptcha")
+
                                     <button class="btn btn--primary btn-block btn-shadow font-semi-bold" type="submit">
                                         {{ translate('Get_OTP') }}
                                     </button>
@@ -111,7 +113,8 @@
                                     @csrf
                                     <input type="hidden" name="login_type" value="otp-login">
                                     @include("web-views.customer-views.auth.partials._phone")
-                                    @include("web-views.customer-views.auth.partials._firebase-recaptcha-container")
+                                    @include("web-views.customer-views.auth.partials._recaptcha")
+
                                     <button class="btn btn--primary btn-block btn-shadow font-semi-bold" type="submit">
                                         {{ translate('Get_OTP') }}
                                     </button>
@@ -205,7 +208,7 @@
 
 @push('script')
     @php($recaptcha = getWebConfig(name: 'recaptcha'))
-    @if($web_config['firebase_otp_verification'] && $web_config['firebase_otp_verification']['status'])
+    @if($web_config['firebase_otp_verification'] && $web_config['firebase_otp_verification_status'])
         <script type="text/javascript">
             "use strict";
             // console.info('Firebase Auth Rendering...');

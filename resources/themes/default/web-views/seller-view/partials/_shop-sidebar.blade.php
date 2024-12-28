@@ -1,17 +1,14 @@
-<aside
-    class="col-lg-3 hidden-xs col-md-3 col-sm-4 SearchParameters __search-sidebar {{Session::get('direction') === "rtl" ? 'pl-2' : 'pr-2'}}"
-    id="SearchParameters">
-    <div class="cz-sidebar __inline-35 p-4 overflow-hidden" id="shop-sidebar">
-        <div class="cz-sidebar-header p-0">
-            <h6 class="font-semibold fs-20 mb-2">{{ translate('Sidebar') }}</h6>
-            <button class="close ms-auto fs-18-mobile"
+<aside class="col-lg-3 hidden-xs col-md-3 col-sm-4 SearchParameters __search-sidebar {{Session::get('direction') === "rtl" ? 'pl-2' : 'pr-2'}}" id="SearchParameters">
+    <div class="cz-sidebar __inline-35 overflow-hidden" id="shop-sidebar">
+        <div class="bg-white p-3 border-bottom">
+            <h6 class="font-semibold mb-0 fs-16">{{ translate('Filter_By') }}</h6>
+            <button class="close ms-auto fs-18-mobile position-relative top-n6 d-lg-none close-icon"
                     type="button" data-dismiss="sidebar" aria-label="Close">
                 <i class="tio-clear"></i>
             </button>
         </div>
-        <div class="pb-0 shop-sidebar-scroll">
+        <div class="p-3 shop-sidebar-scroll">
             <div class="d-flex gap-3 flex-column">
-
                 @if($web_config['digital_product_setting'])
                     <div class="">
                         <h6 class="font-semibold fs-15 mb-2">{{ translate('Product_Type') }}</h6>
@@ -50,7 +47,7 @@
                                 <div class="card-header flex-between">
                                     <div>
                                         <label class="for-hover-label cursor-pointer get-view-by-onclick"
-                                               data-link="{{ route('shopView', ['id'=> $seller_id, 'category_id' => $category['id'], 'data_from' => 'category', 'page' => 1]) }}">
+                                               data-link="{{ route('shopView', ['id'=> $seller_id, 'category_id' => $category['id'], 'data_from' => 'category', 'offer_type' => request('offer_type') ?? '', 'page' => 1]) }}">
                                             {{ $category['name'] }}
                                         </label>
                                     </div>
@@ -70,7 +67,7 @@
                                             <div class="for-hover-label card-header flex-between">
                                                 <div>
                                                     <label class="cursor-pointer get-view-by-onclick"
-                                                           data-link="{{ route('shopView', ['id'=> $seller_id, 'sub_category_id' => $child['id'], 'data_from' => 'category', 'page' => 1]) }}">
+                                                           data-link="{{ route('shopView', ['id'=> $seller_id, 'sub_category_id' => $child['id'], 'data_from' => 'category', 'offer_type' => request('offer_type') ?? '', 'page' => 1]) }}">
                                                         {{$child['name']}}
                                                     </label>
                                                 </div>
@@ -89,7 +86,7 @@
                                                     <div class="card-header">
                                                         <label
                                                             class="for-hover-label d-block cursor-pointer text-left get-view-by-onclick"
-                                                            data-link="{{ route('shopView', ['id' => $seller_id, 'sub_category_id' => $ch['id'], 'data_from' => 'category', 'page' => 1])}}">
+                                                            data-link="{{ route('shopView', ['id' => $seller_id, 'sub_category_id' => $ch['id'], 'data_from' => 'category', 'offer_type' => request('offer_type') ?? '', 'page' => 1])}}">
                                                             {{$ch['name']}}
                                                         </label>
                                                     </div>
@@ -125,7 +122,7 @@
                                     class="brand mt-2 p-0 for-brand-hover {{Session::get('direction') === "rtl" ? 'mr-2' : ''}}"
                                     id="brand">
                                     <li class="flex-between get-view-by-onclick cursor-pointer"
-                                        data-link="{{ route('shopView', ['id'=> $seller_id, 'brand_id' => $brand['id'], 'data_from' => 'brand', 'page' => 1]) }}"
+                                        data-link="{{ route('shopView', ['id'=> $seller_id, 'brand_id' => $brand['id'], 'data_from' => 'brand', 'offer_type' => request('offer_type') ?? '', 'page' => 1]) }}"
                                     >
                                         <div class="text-start">
                                             {{ $brand['name'] }}
@@ -163,7 +160,7 @@
                                 <ul class="brand mt-2 p-0 for-brand-hover {{Session::get('direction') === "rtl" ? 'mr-2' : ''}}"
                                      id="brand">
                                     <li class="flex-between get-view-by-onclick cursor-pointer"
-                                        data-link="{{ route('shopView', ['id'=> $seller_id, 'publishing_house_id' => $publishingHouseItem['id'], 'product_type' => 'digital', 'page' => 1]) }}"
+                                        data-link="{{ route('shopView', ['id'=> $seller_id, 'publishing_house_id' => $publishingHouseItem['id'], 'offer_type' => request('offer_type') ?? '', 'product_type' => 'digital', 'page' => 1]) }}"
                                     >
                                         <div class="text-start">
                                             {{ $publishingHouseItem['name'] }}
@@ -203,7 +200,7 @@
                                 <ul class="brand mt-2 p-0 for-brand-hover {{Session::get('direction') === "rtl" ? 'mr-2' : ''}}"
                                      id="brand">
                                     <li class="flex-between get-view-by-onclick cursor-pointer"
-                                        data-link="{{ route('shopView', ['id'=> $seller_id, 'author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}">
+                                        data-link="{{ route('shopView', ['id'=> $seller_id, 'author_id' => $productAuthor['id'], 'offer_type' => request('offer_type') ?? '','product_type' => 'digital', 'page' => 1]) }}">
                                         <div class="text-start">
                                             {{ $productAuthor['name'] }}
                                         </div>

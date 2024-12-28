@@ -301,8 +301,7 @@
                                     </dd>
                                     <dt class="col-5 text-capitalize">{{translate('item_discount')}}</dt>
                                     <dd class="col-6 title-color">
-                                        -
-                                        <strong>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['itemDiscount']), currencyCode: getCurrencyCode())}}</strong>
+                                        <strong>-{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['itemDiscount']), currencyCode: getCurrencyCode())}}</strong>
                                     </dd>
                                     <dt class="col-5 text-capitalize">{{translate('sub_total')}}</dt>
                                     <dd class="col-6 title-color">
@@ -321,7 +320,7 @@
                                         <strong>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['taxTotal']), currencyCode: getCurrencyCode())}}</strong>
                                     </dd>
                                     <dt class="col-5 text-capitalize">
-                                        {{translate('delivery_fee')}}
+                                        {{translate('shipping_fee')}}
                                         <br>
                                         {{($order['is_shipping_free'] ? '('.translate('expense_bearer_').($order['free_delivery_bearer'] == 'seller' ? 'vendor' : $order['free_delivery_bearer']).')': '' )}}
                                     </dt>
@@ -704,14 +703,14 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="d-flex gap-2 mb-4">
-                            <img src="{{dynamicAsset(path: 'public/assets/back-end/img/shop-information.png')}}" alt="">
-                            {{translate('shop_Information')}}
+                            <img src="{{ dynamicAsset(path: 'public/assets/back-end/img/shop-information.png') }}" alt="">
+                            {{ translate('shop_Information') }}
                         </h4>
                         <div class="media">
                             @if($order->seller_is == 'admin')
                                 <div class="mr-3">
                                     <img class="avatar rounded avatar-70 img-fit-contain "
-                                         src="{{ getStorageImages(path: $companyWebLogo, type: 'shop') }}"
+                                         src="{{ getStorageImages(path: getWebConfig(name: 'company_fav_icon'), type: 'shop') }}"
                                          alt="">
                                 </div>
                                 <div class="media-body d-flex flex-column gap-2">

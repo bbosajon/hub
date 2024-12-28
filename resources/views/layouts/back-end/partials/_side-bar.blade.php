@@ -58,7 +58,7 @@
             <div class="navbar-brand-wrapper justify-content-between side-logo dashboard-navbar-side-logo-wrapper">
                 <a class="navbar-brand" href="{{route('admin.dashboard.index')}}" aria-label="Front">
                     <img class="navbar-brand-logo-mini for-web-logo max-h-30"
-                         src="{{getStorageImages(path:$eCommerceLogo,type: 'backend-logo') }}" alt="{{translate('logo')}}">
+                         src="{{ getStorageImages(path:$eCommerceLogo, type: 'backend-logo') }}" alt="{{ translate('logo')}}">
                 </a>
                 <button type="button"
                         class="d-none js-navbar-vertical-aside-toggle-invoker navbar-vertical-aside-toggle btn btn-icon btn-xs btn-ghost-dark">
@@ -548,7 +548,7 @@
                                         </a>
                                     </li>
 
-                                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/deal/'.ClearanceSale::LIST[URI]) ? 'active' : '' }}">
+                                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/deal/clearance-sale') || Request::is('admin/deal/clearance-sale*') ? 'active' : '' }}">
                                         <a class="js-navbar-vertical-aside-menu-link nav-link"
                                            href="{{ route('admin.deal.clearance-sale.index') }}"
                                            title="{{ translate('Clearance_Sale') }}">
@@ -557,7 +557,7 @@
                                             {{ translate('Clearance_Sale') }}
                                         </span>
                                         </a>
-                                    </li> --}}
+                                    </li>
                                 </ul>
                             </li>
 
@@ -1195,13 +1195,26 @@
                                             </span>
                                         </a>
                                     </li>
+
+                                    <li class="navbar-vertical-aside-has-menu
+                                    {{ Request::is('admin/business-settings/'.BusinessSettings::ANALYTICS_INDEX[URI]) ? 'active' : '' }}
+                                    ">
+                                        <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                           href="{{ route('admin.business-settings.analytics-index') }}"
+                                           title="{{ translate('Marketing_Tool') }}">
+                                            <span class="tio-circle nav-indicator-icon"></span>
+                                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                                {{translate('Marketing_Tool')}}
+                                            </span>
+                                        </a>
+                                    </li>
+
                                     <li class="navbar-vertical-aside-has-menu
                                     {{ Request::is('admin/business-settings/mail'.Mail::VIEW[URI]) ||
                                         Request::is('admin/business-settings/'.SMSModule::VIEW[URI]) ||
                                         Request::is('admin/business-settings/'.Recaptcha::VIEW[URI]) ||
                                         Request::is('admin/social-login/'.SocialLoginSettings::VIEW[URI]) ||
                                         Request::is('admin/social-media-chat/'.SocialMediaChat::VIEW[URI]) ||
-                                        Request::is('admin/business-settings/'.BusinessSettings::ANALYTICS_INDEX[URI]) ||
                                         Request::is('admin/storage-connection-settings/'.StorageConnectionSettings::INDEX[URI]) ||
                                         Request::is('admin/firebase-otp-verification/'.FirebaseOTPVerification::INDEX[URI]) ||
                                         Request::is('admin/business-settings/'.GoogleMapAPI::VIEW[URI])?'active':''}}
@@ -1301,7 +1314,6 @@
                                         {{translate('addon_Menus')}}
                                     </span>
                                     </a>
-                                    @dd($route['name'])
                                     <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                                         style="display:
                                     @foreach(config('addon_admin_routes') as $routes)

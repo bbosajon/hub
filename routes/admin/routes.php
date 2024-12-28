@@ -13,6 +13,8 @@ use App\Enums\ViewPaths\Admin\Coupon;
 use App\Enums\ViewPaths\Admin\Review;
 use App\Enums\ViewPaths\Admin\Vendor;
 use App\Http\Controllers\Admin\Promotion\ClearanceSaleController;
+use App\Http\Controllers\Admin\Promotion\ClearanceSalePrioritySetupController;
+use App\Http\Controllers\Admin\Promotion\ClearanceSaleVendorOfferController;
 use App\Http\Controllers\Admin\Settings\FirebaseOTPVerificationController;
 use App\Http\Controllers\FirebaseController;
 use Illuminate\Support\Facades\Route;
@@ -190,9 +192,9 @@ Route::group(['prefix' => 'login'], function () {
 });
 
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin']], function () {
-
     Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::controller(DashboardController::class)->group(function () {
+
             Route::get(Dashboard::VIEW[URI], 'index')->name('index');
             Route::post(Dashboard::ORDER_STATUS[URI], 'getOrderStatus')->name('order-status');
             Route::get(Dashboard::EARNING_STATISTICS[URI], 'getEarningStatistics')->name('earning-statistics');
@@ -612,6 +614,35 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin']],
             Route::post(FeatureDeal::UPDATE[URI], 'update')->name('featured-update');
             Route::post(FeatureDeal::STATUS[URI], 'updateStatus')->name('feature-status');
         });
+
+         Route::group(['prefix' => 'clearance-sale', 'as' => 'clearance-sale.'], function () {
+             Route::controller(ClearanceSaleController::class)->group(function () {
+                 Route::get(ClearanceSale::LIST[URI], 'index')->name('index');
+                 Route::post(ClearanceSale::STATUS[URI], 'updateStatus')->name('status-update');
+                 Route::post(ClearanceSale::UPDATE_CONFIG[URI], 'updateClearanceConfig')->name('update-config');
+                 Route::get(ClearanceSale::SEARCH[URI], 'getSearchedProductsView')->name('search-product-for-clearance');
+                 Route::get(ClearanceSale::MULTIPLE_PRODUCT_DETAILS[URI], 'getMultipleProductDetailsView')->name('multiple-clearance-product-details');
+                 Route::post(ClearanceSale::ADD_PRODUCT[URI], 'addClearanceProduct')->name('add-product');
+                 Route::post(ClearanceSale::PRODUCT_STATUS[URI], 'updateProductStatus')->name('product-status-update');
+                 Route::delete(ClearanceSale::CLEARANCE_DELETE[URI] . '/{product_id}', 'deleteClearanceProduct')->name('clearance-delete');
+                 Route::delete(ClearanceSale::CLEARANCE_PRODUCTS_DELETE[URI] , 'deleteClearanceAllProduct')->name('clearance-delete-all-product');
+                 Route::post(ClearanceSale::UPDATE_DISCOUNT[URI], 'updateDiscountAmount')->name('update-discount');
+             });
+
+            Route::controller(ClearanceSaleVendorOfferController::class)->group(function () {
+                Route::get(ClearanceSale::VENDOR_OFFERS[URI], 'index')->name('vendor-offers');
+                Route::get(ClearanceSale::VENDOR_SEARCH[URI], 'getSearchedVendorsView')->name('search-vendor-for-clearance');
+                Route::post(ClearanceSale::ADD_VENDOR[URI], 'addClearanceVendorProduct')->name('vendor-add');
+                Route::post(ClearanceSale::UPDATE_STATUS[URI], 'updateVendorStatus')->name('update-vendor-status');
+                Route::post(ClearanceSale::UPDATE_OFFER_STATUS[URI], 'updateVendorOfferStatus')->name('update-vendor-offer-status');
+                Route::delete(ClearanceSale::VENDOR_DELETE[URI] . '/{id}', 'deleteVendorOffer')->name('vendor-delete');
+            });
+
+            Route::controller(ClearanceSalePrioritySetupController::class)->group(function () {
+                Route::get(ClearanceSale::PRIORITY_SETUP[URI], 'index')->name('priority-setup');
+                Route::post(ClearanceSale::PRIORITY_CONFIG[URI], 'updateConfig')->name('priority-setup-config');
+            });
+        });
     });
 
     /** Notification and push notification */
@@ -1001,7 +1032,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin']],
                 Route::get(EmailTemplate::VIEW[URI] . '/{type}' . '/{tab}', 'getView')->name('view');
                 Route::post(EmailTemplate::UPDATE[URI] . '/{type}' . '/{tab}', 'update')->name('update');
                 Route::post(EmailTemplate::UPDATE_STATUS[URI] . '/{type}' . '/{tab}', 'updateStatus')->name('update-status');
+<<<<<<< HEAD
+=======
 
+>>>>>>> d239f82bc9ecd5644e282caac9babcd3d8b64205
             });
         });
 

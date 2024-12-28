@@ -76,7 +76,7 @@ class ShippingMethodController extends Controller
 
         $cartShipping->map(function ($data) {
             $isCheckedItemExist = Cart::where(['cart_group_id' => $data['cart_group_id'], 'is_checked' => 1])->exists();
-            $freeDeliveryStatus = OrderManager::free_delivery_order_amount($data['cart_group_id'])['status'];
+            $freeDeliveryStatus = OrderManager::getFreeDeliveryOrderAmountArray($data['cart_group_id'])['status'];
             $data['free_delivery_status'] = $freeDeliveryStatus;
             $data['is_check_item_exist'] = $isCheckedItemExist ? 1 : 0;
             return $data;

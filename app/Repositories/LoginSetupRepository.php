@@ -18,6 +18,7 @@ class LoginSetupRepository implements LoginSetupRepositoryInterface
 
     public function add(array $data): string|object
     {
+        cacheRemoveByType(type: 'login_setups');
         return $this->loginSetup->create($data);
     }
 
@@ -90,17 +91,20 @@ class LoginSetupRepository implements LoginSetupRepositoryInterface
 
     public function update(string $id, array $data): bool
     {
+        cacheRemoveByType(type: 'login_setups');
         return $this->loginSetup->where('id', $id)->update($data);
     }
 
     public function updateWhere(array $params, array $data): bool
     {
+        cacheRemoveByType(type: 'login_setups');
         $this->loginSetup->where($params)->update($data);
         return true;
     }
 
     public function updateOrInsert(string $key, mixed $value): bool
     {
+        cacheRemoveByType(type: 'login_setups');
         $this->loginSetup->updateOrInsert(['key' => $key], [
             'value' => $value,
             'updated_at' => now()
@@ -116,6 +120,7 @@ class LoginSetupRepository implements LoginSetupRepositoryInterface
 
     public function delete(array $params): bool
     {
+        cacheRemoveByType(type: 'login_setups');
         $this->loginSetup->where($params)->delete();
         return true;
     }

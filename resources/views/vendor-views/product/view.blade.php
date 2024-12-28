@@ -1,4 +1,4 @@
-@extends('layouts.back-end.app-seller')
+z@extends('layouts.back-end.app-seller')
 
 @section('title', translate('product_Preview'))
 
@@ -506,7 +506,7 @@
                                 <a class="aspect-1 float-left overflow-hidden"
                                    href="{{ getStorageImages(path:$product?->seoInfo?->image_full_url['path'] ? $product?->seoInfo?->image_full_url : $product->meta_image_full_url,type: 'backend-basic') }}"
                                    data-lightbox="meta-thumbnail">
-                                    <img class="max-width-100px"
+                                    <img class="max-width-100px rounded"
                                          src="{{ getStorageImages(path:$product?->seoInfo?->image_full_url['path'] ? $product?->seoInfo?->image_full_url : $product->meta_image_full_url,type: 'backend-basic') }}" alt="{{translate('meta_image')}}">
                                 </a>
                             </div>

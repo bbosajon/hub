@@ -1,5 +1,5 @@
-@php($cart=\App\Utils\CartManager::get_cart())
-@php($cartList=\App\Utils\CartManager::get_cart(type: 'checked'))
+@php($cart=\App\Utils\CartManager::getCartListQuery())
+@php($cartList=\App\Utils\CartManager::getCartListQuery(type: 'checked'))
 
 <div class="navbar-tool dropdown me-2 {{Session::get('direction') === "rtl" ? 'mr-md-3' : 'ml-md-3'}}">
     @if($web_config['guest_checkout_status'] || auth('customer')->check())
@@ -12,7 +12,7 @@
         <a class="navbar-tool-text ms-2"
            href="{{route('shop-cart') }}"><small>{{ translate('my_cart') }}</small>
             <span class="cart-total-price font-bold fs-14">
-                {{ webCurrencyConverter(amount: \App\Utils\CartManager::cart_total_applied_discount($cartList)) }}
+                {{ webCurrencyConverter(amount: \App\Utils\CartManager::getCartListTotalAppliedDiscount($cartList)) }}
             </span>
         </a>
     @else
@@ -26,7 +26,7 @@
            href="{{ route('customer.auth.login') }}">
             <small>{{ translate('my_cart') }}</small>
             <span class="cart-total-price font-bold fs-14">
-                {{ webCurrencyConverter(amount: \App\Utils\CartManager::cart_total_applied_discount($cartList)) }}
+                {{ webCurrencyConverter(amount: \App\Utils\CartManager::getCartListTotalAppliedDiscount($cartList)) }}
             </span>
         </a>
     @endif
@@ -51,7 +51,7 @@
             @if($cart->count() > 0)
 
                 <?php
-                    $getShippingCostSavedForFreeDelivery=\App\Utils\CartManager::get_shipping_cost_saved_for_free_delivery();
+                    $getShippingCostSavedForFreeDelivery=\App\Utils\CartManager::getShippingCostSavedForFreeDelivery();
                     $totalDiscountOnProduct = 0;
                     foreach ($cart as $cartItem) {
                         $totalDiscountOnProduct += $cartItem->discount * $cartItem->quantity;
@@ -79,7 +79,7 @@
                     @php($sub_total=0)
                     @php($total_tax=0)
                     @foreach($cart as  $cartItem)
-                        @php($product=\App\Models\Product::find($cartItem['product_id']))
+                        @php($product=\App\Models\Product::where(['id' => $cartItem['product_id']])->with(['clearanceSale' => function ($query) {return $query->active();}])->first())
 
                         <?php
                             $getProductCurrentStock = $product->current_stock;
@@ -122,9 +122,8 @@
                                             <span
                                                 class="text-muted me-2">x <span
                                                     class="cart_quantity_multiply{{$cartItem['id']}}">{{$cartItem['quantity']}}</span></span>
-                                            <span
-                                                class="text-accent me-2 discount_price_of_{{$cartItem['id']}}">
-                                                    {{ webCurrencyConverter(amount: ($cartItem['price']-$cartItem['discount'])*$cartItem['quantity'])}}
+                                            <span class="text-accent me-2 discount_price_of_{{$cartItem['id']}}">
+                                                {{ webCurrencyConverter(amount: ($cartItem['price']-$cartItem['discount'])*$cartItem['quantity'])}}
                                             </span>
                                         </div>
                                     </div>
@@ -183,7 +182,7 @@
                         @php($total_tax+=$cartItem['tax']*$cartItem['quantity'])
                     @endforeach
                 </div>
-                @php($free_delivery_status = \App\Utils\OrderManager::free_delivery_order_amount($cart[0]->cart_group_id))
+                @php($free_delivery_status = \App\Utils\OrderManager::getFreeDeliveryOrderAmountArray($cart[0]->cart_group_id))
                 @if ($free_delivery_status['status'] && (session()->missing('coupon_type') || session('coupon_type') !='free_delivery'))
                     <div class="py-3">
                         <img src="{{theme_asset(path: 'public/assets/front-end/img/truck.svg') }}" alt="">
@@ -238,7 +237,7 @@
                 <div class="widget-cart-item">
                     <div class="text-center text-capitalize">
                         <img class="mb-3 mw-100" src="{{theme_asset(path: 'public/assets/front-end/img/icons/empty-cart.svg') }}"
-                             alt="{{ translate('cart') }}">
+                             alt="{{ translate('cart') }}" loading="eager">
                         <p class="text-capitalize">{{ translate('Your_Cart_is_Empty') }}!</p>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ use App\Enums\ViewPaths\Vendor\Auth;
 use App\Enums\ViewPaths\Vendor\Cart;
 use App\Enums\ViewPaths\Vendor\CategoryShippingCost;
 use App\Enums\ViewPaths\Vendor\Chatting;
+use App\Enums\ViewPaths\Vendor\ClearanceSale;
 use App\Enums\ViewPaths\Vendor\Coupon;
 use App\Enums\ViewPaths\Vendor\Customer;
 use App\Enums\ViewPaths\Vendor\Dashboard;
@@ -41,6 +42,7 @@ use App\Http\Controllers\Vendor\POS\POSController;
 use App\Http\Controllers\Vendor\POS\POSOrderController;
 use App\Http\Controllers\Vendor\Product\ProductController;
 use App\Http\Controllers\Vendor\ProfileController;
+use App\Http\Controllers\Vendor\Promotion\ClearanceSaleController;
 use App\Http\Controllers\Vendor\RefundController;
 use App\Http\Controllers\Vendor\ReviewController;
 use App\Http\Controllers\Vendor\Shipping\CategoryShippingCostController;
@@ -207,6 +209,21 @@ Route::group(['middleware' => ['maintenance_mode']], function () {
                     Route::delete(Coupon::DELETE[URI] . '/{id}', 'delete')->name('delete');
                     Route::get(Coupon::QUICK_VIEW[URI], 'getQuickView')->name('quick-view');
                     Route::get(Coupon::EXPORT[URI], 'exportList')->name('export')->middleware('actch');
+                });
+            });
+
+            Route::group(['prefix' => 'clearance-sale', 'as' => 'clearance-sale.'], function () {
+                Route::controller(ClearanceSaleController::class)->group(function () {
+                    Route::get(ClearanceSale::LIST[URI], 'index')->name('index');
+                    Route::post(ClearanceSale::STATUS[URI], 'updateStatus')->name('status-update');
+                    Route::post(ClearanceSale::UPDATE_CONFIG[URI], 'updateClearanceConfig')->name('update-config');
+                    Route::get(ClearanceSale::SEARCH[URI], 'getSearchedProductsView')->name('search-product-for-clearance');
+                    Route::get(ClearanceSale::MULTIPLE_PRODUCT_DETAILS[URI], 'getMultipleProductDetailsView')->name('multiple-clearance-product-details');
+                    Route::post(ClearanceSale::ADD_PRODUCT[URI], 'addClearanceProduct')->name('add-product');
+                    Route::post(ClearanceSale::PRODUCT_STATUS[URI], 'updateProductStatus')->name('product-status-update');
+                    Route::delete(ClearanceSale::CLEARANCE_DELETE[URI] . '/{product_id}', 'deleteClearanceProduct')->name('clearance-delete');
+                    Route::delete(ClearanceSale::CLEARANCE_PRODUCTS_DELETE[URI] , 'deleteClearanceAllProduct')->name('clearance-delete-all-product');
+                    Route::post(ClearanceSale::UPDATE_DISCOUNT[URI], 'updateDiscountAmount')->name('update-discount');
                 });
             });
 

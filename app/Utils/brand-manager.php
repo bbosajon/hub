@@ -19,6 +19,9 @@ class BrandManager
         $user = Helpers::getCustomerInformation($request);
 
         $products = Product::active()
+            ->with(['clearanceSale' => function ($query) {
+                return $query->active();
+            }])
             ->withCount(['reviews', 'wishList' => function ($query) use ($user) {
                 $query->where('customer_id', $user != 'offline' ? $user->id : '0');
             }])
@@ -30,7 +33,11 @@ class BrandManager
 
     public static function getActiveBrandWithCountingAndPriorityWiseSorting()
     {
-        $cacheKey = 'cache_priority_wise_brands_list_' . (getDefaultLanguage() ?? 'en');
+        if (request('offer_type') == 'clearance_sale') {
+            $cacheKey = 'cache_priority_wise_brands_list_clearance_sale_' . (getDefaultLanguage() ?? 'en');
+        } else {
+            $cacheKey = 'cache_priority_wise_brands_list_' . (getDefaultLanguage() ?? 'en');
+        }
         $cacheKeys = Cache::get(CACHE_CONTAINER_FOR_LANGUAGE_WISE_CACHE_KEYS, []);
 
         if (!in_array($cacheKey, $cacheKeys)) {
@@ -40,7 +47,11 @@ class BrandManager
 
         return Cache::remember($cacheKey, CACHE_FOR_3_HOURS, function () {
             $brandList = Brand::active()->withCount(['brandProducts' => function ($query) {
-                $query->active();
+                $query->active()->when(request('offer_type') == 'clearance_sale', function ($query) {
+                    return $query->whereHas('clearanceSale', function ($query) {
+                        return $query->active();
+                    });
+                });
             }]);
             return self::getPriorityWiseBrandProductsQuery(query: $brandList);
         });

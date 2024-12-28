@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\BusinessSetting;
+use App\Models\Color;
 use App\Models\LoginSetup;
 use App\Models\User;
 use Carbon\Carbon;
@@ -238,6 +239,29 @@ if (!function_exists('checkTimeFormatInRequestTime')) {
     }
 }
 
+
+if (!function_exists('getColorNameByCode')) {
+    function getColorNameByCode($code)
+    {
+        $settings = Cache::remember(CACHE_FOR_ALL_COLOR_LIST, CACHE_FOR_3_HOURS, function () {
+            return Color::all();
+        });
+        $data = $settings?->firstWhere('code', $code);
+        return isset($data) ? $data->name : $data;
+    }
+}
+
+
+if (!function_exists('getStoreTempResponse')) {
+    function getStoreTempResponse($response): void
+    {
+        $string = "<?php return " . var_export($response, true) . ";";
+        file_put_contents(base_path('storage/app/temp-note.php'), $string);
+    }
+}
+
+
+
 if (!function_exists('cacheRemoveByType')) {
     function cacheRemoveByType(string $type): void
     {
@@ -291,6 +315,7 @@ if (!function_exists('cacheRemoveByType')) {
             Cache::forget(CACHE_FOR_HOME_PAGE_LATEST_PRODUCT_LIST);
             Cache::forget(CACHE_FOR_HOME_PAGE_TOP_RATED_PRODUCT_LIST);
             Cache::forget(CACHE_FOR_HOME_PAGE_BEST_SELL_PRODUCT_LIST);
+            Cache::forget(CACHE_FOR_CLEARANCE_SALE_PRODUCTS_COUNT);
 
             // Brands
             Cache::forget(CACHE_PRIORITY_WISE_BRANDS_LIST);

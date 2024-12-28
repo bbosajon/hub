@@ -1844,3 +1844,9 @@ body *::-webkit-scrollbar-thumb {
     max-width: 480px;
     max-height: 480px;
 }
+
+@media (max-width: 370px) {
+    .clearance-save-more {
+        font-size: .85rem;
+    }
+}

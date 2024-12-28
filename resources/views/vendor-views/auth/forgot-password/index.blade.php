@@ -85,8 +85,8 @@
                                     </span>
                                 </label>
 
-                                <input type="number" class="form-control form-control-lg" name="identity"
-                                       id="signingVendorPhone" value="{{ old('identity') }}"
+                                <input type="email" class="form-control form-control-lg" name="identity"
+                                       value="{{ old('identity') }}"
                                        tabindex="1" placeholder="{{ translate('enter_email_address') }}"
                                        aria-label="{{ translate('enter_email_address') }}"
                                        required>

@@ -124,7 +124,9 @@ class POSOrderController extends BaseController
         }
         foreach ($cart as $item) {
             if (is_array($item)) {
-                $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']]);
+                $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']], relations: ['clearanceSale' => function ($query) {
+                    return $query->active();
+                }]);
                 if ($product) {
                     $tax = $this->getTaxAmount($item['price'], $product['tax']);
                     $price = $product['tax_model'] == 'include' ? $item['price'] - $tax : $item['price'];
@@ -141,8 +143,8 @@ class POSOrderController extends BaseController
                             $product['digital_file_ready'] = $digitalProductVariation['file'];
                             $product['storage_path'] = $getStoragePath ? $getStoragePath['value'] : 'public';
                         }
-                    }elseif ($product['digital_product_type'] == 'ready_product' && !empty($product['digital_file_ready'])) {
-                        $product['storage_path'] = $product['digital_file_ready_storage_type'] ??  'public';
+                    } elseif ($product['digital_product_type'] == 'ready_product' && !empty($product['digital_file_ready'])) {
+                        $product['storage_path'] = $product['digital_file_ready_storage_type'] ?? 'public';
                     }
                     $orderDetail = $this->orderDetailsService->getPOSOrderDetailsData(
                         orderId: $orderId, item: $item,
@@ -298,9 +300,11 @@ class POSOrderController extends BaseController
         $cartItemValue = [];
         $subTotalCalculation = [
             'countItem' => 0,
+            'totalQuantity' => 0,
             'taxCalculate' => 0,
             'totalTaxShow' => 0,
             'totalTax' => 0,
+            'totalIncludeTax' => 0,
             'subtotal' => 0,
             'discountOnProduct' => 0,
             'productSubtotal' => 0,
@@ -308,16 +312,28 @@ class POSOrderController extends BaseController
         if (session()->get($cartName)) {
             foreach (session()->get($cartName) as $cartItem) {
                 if (is_array($cartItem)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']]);
-                    $subTotalCalculation = $this->cartService->getCartSubtotalCalculation(
+                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']], relations: ['clearanceSale' => function ($query) {
+                        return $query->active();
+                    }]);
+                    $cartSubTotalCalculation = $this->cartService->getCartSubtotalCalculation(
                         product: $product,
                         cartItem: $cartItem,
                         calculation: $subTotalCalculation
                     );
                     if ($cartItem['customerId'] == $customerCartData[$cartName]['customerId']) {
-                        $cartItem['productSubtotal'] = $subTotalCalculation['productSubtotal'];
-                        $cartItemValue[] = $cartItem;
+                        $cartItem['productSubtotal'] = $cartSubTotalCalculation['productSubtotal'];
                         $subTotalCalculation['customerOnHold'] = $cartItem['customerOnHold'];
+                        $cartItemValue[] = $cartItem;
+
+                        $subTotalCalculation['countItem'] += $cartSubTotalCalculation['countItem'];
+                        $subTotalCalculation['totalQuantity'] += $cartSubTotalCalculation['totalQuantity'];
+                        $subTotalCalculation['taxCalculate'] += $cartSubTotalCalculation['taxCalculate'];
+                        $subTotalCalculation['totalTaxShow'] += $cartSubTotalCalculation['totalTaxShow'];
+                        $subTotalCalculation['totalTax'] += $cartSubTotalCalculation['totalTax'];
+                        $subTotalCalculation['totalIncludeTax'] += $cartSubTotalCalculation['totalIncludeTax'];
+                        $subTotalCalculation['productSubtotal'] += $cartSubTotalCalculation['productSubtotal'];
+                        $subTotalCalculation['subtotal'] += $cartSubTotalCalculation['subtotal'];
+                        $subTotalCalculation['discountOnProduct'] += $cartSubTotalCalculation['discountOnProduct'];
                     }
                 }
             }

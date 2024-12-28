@@ -597,8 +597,10 @@
                                         </div>
 
                                     </div>
-                                    <p class="text-muted">{{ translate('must_upload_colour_wise_images_first._Colour_is_shown_in_the_image_section_top_right') }}
-                                        . </p>
+                                    <p class="text-muted">
+                                        {{ translate('must_upload_colour_wise_images_first.') }}
+                                        {{ translate('Colour_is_shown_in_the_image_section_top_right') }}
+                                    </p>
 
                                     <div id="color-wise-image-section" class="row g-2"></div>
                                 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Settings;
 
+use App\Contracts\Repositories\AnalyticScriptRepositoryInterface;
 use App\Contracts\Repositories\DeliveryManRepositoryInterface;
 use App\Contracts\Repositories\SocialMediaRepositoryInterface;
 use App\Contracts\Repositories\VendorRepositoryInterface;
@@ -33,6 +34,7 @@ class BusinessSettingsController extends BaseController
 
     public function __construct(
         private readonly BusinessSettingRepositoryInterface $businessSettingRepo,
+        private readonly AnalyticScriptRepositoryInterface  $analyticScriptRepo,
         private readonly VendorRepositoryInterface          $vendorRepo,
         private readonly DeliveryManRepositoryInterface     $deliveryManRepo,
         private readonly CurrencyRepositoryInterface        $currencyRepo,
@@ -343,19 +345,36 @@ class BusinessSettingsController extends BaseController
 
     public function getAnalyticsView(): View
     {
-        return view(BusinessSettings::ANALYTICS_INDEX[VIEW]);
+        $analytics = $this->analyticScriptRepo->getListWhere(dataLimit: 'all');
+        $analyticsData = [];
+        foreach ($analytics as $analytic) {
+            $analyticsData[$analytic['type']] = $analytic;
+        }
+        return view(BusinessSettings::ANALYTICS_INDEX[VIEW], compact('analyticsData'));
     }
 
     public function updateAnalytics(Request $request): RedirectResponse
     {
-        if ($request['type'] == 'pixel_analytics') {
-            $this->businessSettingRepo->updateOrInsert(type: 'pixel_analytics', value: $request['value'] ?? '');
+        $analyticScriptsTypes = ['meta_pixel', 'linkedin_insight', 'tiktok_tag', 'snapchat_tag', 'twitter_tag', 'pinterest_tag', 'google_tag_manager', 'google_analytics'];
+        if (!in_array($request['type'], $analyticScriptsTypes)) {
+            Toastr::error(translate('Update_failed'));
+            return back();
         }
 
-        if ($request['type'] == 'google_tag_manager_id') {
-            $this->businessSettingRepo->updateOrInsert(type: 'google_tag_manager_id', value: $request['value'] ?? '');
+        if (empty($request['script_id']) && $request['is_active'] == 1) {
+            $type = str_replace(' ', '_', ucwords(str_replace('_', ' ', $request['type'])));
+            Toastr::error(translate('Please_ensure_you_have_filled_in_the_'.$type.'_script_ID.'));
+            return back();
         }
-        Toastr::success(translate('Data_updated'));
+
+        $this->analyticScriptRepo->updateOrInsert(params: ['type' => $request['type']], data: [
+            'name' => ucwords(str_replace('_', ' ', $request['type'])),
+            'type' => $request['type'],
+            'script_id' => $request['script_id'],
+            'is_active' => $request['is_active'] ?? 0,
+        ]);
+
+        Toastr::success(translate('Update_successfully'));
         return back();
     }
 

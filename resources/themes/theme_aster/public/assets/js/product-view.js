@@ -2,17 +2,20 @@
 
 let productListPageBackup = $('#products-search-data-backup');
 let productListPageData = {
+    page: productListPageBackup.data('page'),
     id: productListPageBackup.data('id'),
     name: productListPageBackup.data('name'),
     brand_id: productListPageBackup.data('brand'),
     category_id: productListPageBackup.data('category'),
     data_from: productListPageBackup.data('from'),
+    offer_type: productListPageBackup.data('offer'),
     min_price: productListPageBackup.data('min-price'),
     max_price: productListPageBackup.data('max-price'),
     sort_by: productListPageBackup.data('sort_by'),
     product_type: productListPageBackup.data('product-type'),
     author_id: productListPageBackup.data('author-id'),
     publishing_house_id: productListPageBackup.data('publishing-house-id'),
+    rating: [],
 };
 
 function getProductListFilterRender() {
@@ -47,6 +50,8 @@ $('.product-list-filter-on-sort-by').on('click', function () {
 
 $('.filter-on-product-filter-change').on('click', function () {
     productListPageData.data_from = $(this).data('value');
+    productListPageData.category_id = $('#category_id').val();
+    productListPageData.brand_id = $('#brand_id').val();
     $(".filter-on-product-filter-button").html($(this).text());
     $(".filter-on-product-filter-change").removeClass("selected");
     $(this).addClass("selected");
@@ -89,3 +94,13 @@ $('.action-search-products-by-price').on('click', function (){
     productListPageData.max_price = $('#max_price').val();
     getProductListFilterRender();
 })
+
+$(document).ready(function() {
+    $('.rating-input').on('change', function() {
+        productListPageData.rating = $('.rating-input:checked').map(function() {
+            return $(this).val();
+        }).get() ?? [];
+        getProductListFilterRender();
+    });
+
+});

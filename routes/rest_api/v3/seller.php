@@ -4,6 +4,7 @@ use App\Http\Controllers\RestAPI\v3\seller\auth\ForgotPasswordController;
 use App\Http\Controllers\RestAPI\v3\seller\auth\LoginController as VendorLoginController;
 use App\Http\Controllers\RestAPI\v3\seller\BrandController;
 use App\Http\Controllers\RestAPI\v3\seller\ChatController;
+use App\Http\Controllers\RestAPI\v3\seller\ClearanceSaleController;
 use App\Http\Controllers\RestAPI\v3\seller\CouponController;
 use App\Http\Controllers\RestAPI\v3\seller\DeliveryManCashCollectController;
 use App\Http\Controllers\RestAPI\v3\seller\DeliveryManController;
@@ -121,6 +122,20 @@ Route::group(['namespace' => 'RestAPI\v3\seller', 'prefix' => 'v3/seller', 'midd
                 Route::post('assign-third-party-delivery', 'assign_third_party_delivery');
                 Route::post('update-payment-status', 'update_payment_status');
                 Route::post('address-update', 'address_update');
+            });
+        });
+
+        Route::group(['prefix' => 'clearance-sale'], function () {
+            Route::controller(ClearanceSaleController::class)->group(function () {
+                Route::get('product-list', 'list');
+                Route::post('product-add', 'addClearanceProduct');
+                Route::post('product-delete', 'deleteClearanceProduct');
+                Route::post('all-product-delete', 'deleteAllClearanceProduct');
+                Route::post('product-status-update', 'updateClearanceProductStatus');
+                Route::post('product-discount-update', 'updateClearanceProductDiscount');
+                Route::post('config-status-update', 'updateClearanceConfigStatus');
+                Route::get('config-data', 'getConfigData');
+                Route::post('config-data-update', 'updateConfigData');
             });
         });
 

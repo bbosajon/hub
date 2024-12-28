@@ -56,6 +56,10 @@ use App\Http\Controllers\Payment_Methods\PaystackController;
 |
 */
 
+Route::get('/test', function () {
+   return view('admin-views.deal.clearance-sale.priority-setup');
+});
+
 Route::controller(WebController::class)->group(function () {
     Route::get('maintenance-mode', 'maintenance_mode')->name('maintenance-mode');
 });

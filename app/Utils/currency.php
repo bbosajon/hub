@@ -230,3 +230,71 @@ if (!function_exists('getFormatCurrency')) {
     }
 }
 
+
+if (!function_exists('getProductPriceByType')) {
+    function getProductPriceByType($product, $type, $result = 'value', $price = 0, $from = 'web'): float|int|string
+    {
+        if ($type == 'discount') {
+            if ((isset($product['clearanceSale']) && $product['clearanceSale']) || $product['clearance_sale']) {
+                $clearanceSale = $product['clearanceSale'] ?? $product['clearance_sale'];
+                if ($clearanceSale['discount_type'] == 'percentage') {
+                    $amount = round($clearanceSale['discount_amount'], (!empty($decimalPointSettings) ? $decimalPointSettings: 0));
+                    return $result == 'value' ? $amount : $amount.'%';
+                } else if ($clearanceSale['discount_type'] =='flat') {
+                    return $result == 'value' ? $clearanceSale['discount_amount'] : webCurrencyConverter(amount: $clearanceSale['discount_amount']);
+                }
+            } else if ($product['discount_type'] == 'percent') {
+                $amount = round($product['discount'], (!empty($decimalPointSettings) ? $decimalPointSettings: 0));
+                return $result == 'value' ? $amount : $amount.'%';
+            } else if ($product['discount_type'] =='flat') {
+                return $result == 'value' ? $product['discount'] : webCurrencyConverter(amount: $product['discount']);
+            }
+        }
+
+        if ($type == 'discount_type') {
+            $discountType = $product['discount_type'];
+            if ((isset($product['clearanceSale']) && $product['clearanceSale']) || $product['clearance_sale']) {
+                $clearanceSale = $product['clearanceSale'] ?? $product['clearance_sale'];
+                $discountType = $clearanceSale['discount_type'];
+            }
+            return $discountType;
+        }
+
+        if ($type == 'discounted_unit_price') {
+            $unitPrice = $price != 0 ? $price : $product['unit_price'];
+            if ((isset($product['clearanceSale']) && $product['clearanceSale']) || $product['clearance_sale']) {
+                $amount = $unitPrice - getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $unitPrice);
+            } else {
+                $amount = $unitPrice - (getProductDiscount(product: $product, price: $unitPrice));
+            }
+
+            if ($from == 'panel') {
+                return $result == 'value' ? $amount : setCurrencySymbol(amount: usdToDefaultCurrency(amount: $amount), currencyCode: getCurrencyCode());
+            }
+            return $result == 'value' ? $amount : webCurrencyConverter(amount: $amount);
+        }
+
+        if ($type == 'discounted_amount') {
+            if ((isset($product['clearanceSale']) && $product['clearanceSale']) || $product['clearance_sale']) {
+                $clearanceSale = $product['clearanceSale'] ?? $product['clearance_sale'];
+                $discountAmount = 0;
+                if ($clearanceSale['discount_type'] == 'percentage') {
+                    $discountAmount = ($price * getProductPriceByType(product: $product, type: 'discount', result: 'value')) / 100;
+                } else if ($clearanceSale['discount_type'] =='flat') {
+                    $discountAmount =  $clearanceSale['discount_amount'];
+                }
+
+                $amount = floatval($discountAmount);
+            } else {
+                $amount = getProductDiscount(product: $product, price: $price);
+            }
+            if ($from == 'panel') {
+                return $result == 'value' ? $amount : setCurrencySymbol(amount: usdToDefaultCurrency(amount: $amount), currencyCode: getCurrencyCode());
+            }
+            return $result == 'value' ? $amount : webCurrencyConverter(amount: $amount);
+        }
+
+        return 0;
+    }
+}
+

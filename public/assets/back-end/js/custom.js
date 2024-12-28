@@ -2005,13 +2005,15 @@ $(".clearance-product-add-submit").on("click", function () {
             if(response.status) {
                 $('#product-add-modal').modal('hide');
                 toastr.success(response.message)
-                console.log(response.redirect_url)
-                window.location.href = response?.redirect_url;
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
             } else {
                 $('#product-add-modal').modal('show');
                 toastr.error(response.message)
             }
         },
+        timeout: 5000,
         complete: function () {
             $("#loading").fadeOut();
         },
@@ -2051,7 +2053,9 @@ $('.discount-edit-btn').on('click', function () {
     $('#discount-update-modal input[name="id"]').val(id);
     $('#discount-update-modal .modal-body img').attr('src', imageUrl);
     $('#discount-update-modal .modal-body h6').text(productName);
-    $('#discount-update-modal select[name="discount_type"]').val(discountType);
+    $('#discount-update-modal select[name="discount_type"]').val(discountType).trigger('change');
+    var symbol = discountType === 'percentage' ? '(%)' : `(${$('#dynamic-currency-symbol').val()})`;
+    $('#discount-symbol').html(symbol);
 });
 
 $(".discount-amount-submit").on("click", function () {
@@ -2101,4 +2105,63 @@ $(".stock-clearance-delete-all-products").on("click", function () {
             $("#" + $(this).data("id")).submit();
         }
     });
+});
+
+$("#payment-methods-settings-form").on("submit", function (event) {
+    event.preventDefault();
+    if (!$('#cash-on-delivery').prop('checked') && !$('#digital-payment').prop('checked') && !$('#offline-payment').prop('checked')) {
+        $('#active-one-method-modal').modal('show');
+        return false;
+    }
+    $.ajaxSetup({
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
+        },
+    });
+    $.ajax({
+        type: $(this).attr('method'),
+        url: $(this).data("action"),
+        data: $(this).serialize(),
+        success: function (response) {
+            if (response?.status === 'success') {
+                toastr.success(response?.message);
+                location.reload();
+            } else if (response?.status === 'warning') {
+                let modal = $("#minimum-one-digital-payment");
+                modal.find('.modal-title').html(response?.title)
+                modal.find('.modal-message').html(response?.message)
+
+                if (response?.error_type === 'minimum-one-digital-payment') {
+                    $('.minimum-one-digital-payment').show();
+                    $('.minimum-one-offline-payment-method').hide();
+                } else if (response?.error_type === 'minimum-one-offline-payment-method') {
+                    $('.minimum-one-digital-payment').hide();
+                    $('.minimum-one-offline-payment-method').show();
+                } else if (response?.error_type === 'digital-payment-status-required') {
+                    $('.minimum-one-digital-payment').hide();
+                    $('.minimum-one-offline-payment-method').hide();
+                }
+
+                $("#minimum-one-digital-payment").modal('show');
+            } else {
+                toastr.error(response?.message);
+                location.reload();
+            }
+        },
+    });
+});
+
+$(document).ready(function () {
+    $('#discount_type').on('change', function () {
+        let discountType = $(this).val();
+        const symbol = discountType === 'percentage' ? '(%)' : `(${$('#dynamic-currency-symbol').val()})`;
+        $('#discount-symbol').html(symbol);
+    });
+});
+
+$('[pattern="[0-9]*"]').on('keypress', function (event) {
+    // Allow only numeric keys (0-9)
+    if (event.which < 48 || event.which > 57) {
+        event.preventDefault();
+    }
 });

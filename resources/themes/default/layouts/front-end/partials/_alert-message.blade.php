@@ -1,5 +1,5 @@
 <audio id="myAudio">
-    <source src="{{ dynamicAsset(path: 'assets/front-end/sound/notification.mp3') }}" type="audio/mpeg">
+    <source src="{{ dynamicAsset(path: 'public/assets/front-end/sound/notification.mp3') }}" type="audio/mpeg">
 </audio>
 
 <div class="alert--container active">

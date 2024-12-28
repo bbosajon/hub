@@ -15,7 +15,7 @@
         </h4>
     </div>
     <div>
-        <button class="close call-when-done" type="button" data-dismiss="modal" aria-label="Close">
+        <button class="close close-quick-view-modal" type="button" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -31,13 +31,15 @@
                             @if(json_decode($product->colors) && count($product->color_images_full_url)>0)
                                 @foreach ($product->color_images_full_url as $key => $photo)
                                     @if($photo['color'] != null)
-                                        <div class="product-preview-item d-flex align-items-center justify-content-center">
+                                        <div
+                                            class="product-preview-item d-flex align-items-center justify-content-center">
                                             <img class="show-imag img-responsive max-height-500px"
                                                  src="{{ getStorageImages(path: $photo['image_name'], type: 'product') }}"
                                                  alt="{{ translate('product') }}" width="">
                                         </div>
                                     @else
-                                        <div class="product-preview-item d-flex align-items-center justify-content-center">
+                                        <div
+                                            class="product-preview-item d-flex align-items-center justify-content-center">
                                             <img class="show-imag img-responsive max-height-500px"
                                                  src="{{ getStorageImages(path:$photo['image_name'], type: 'product') }}"
                                                  alt="{{ translate('product') }}" width="">
@@ -64,7 +66,8 @@
                             <i class="fa {{($wishlist_status == 1?'fa-heart':'fa-heart-o')}} wishlist_icon_{{$product['id']}} web-text-primary"
                                id="wishlist_icon_{{$product['id']}}" aria-hidden="true"></i>
                             <div class="wishlist-tooltip" x-placement="top">
-                                <div class="arrow"></div><div class="inner">
+                                <div class="arrow"></div>
+                                <div class="inner">
                                     <span class="add">{{translate('added_to_wishlist')}}</span>
                                     <span class="remove">{{translate('removed_from_wishlist')}}</span>
                                 </div>
@@ -136,15 +139,19 @@
                         @endfor
                     </div>
                     <span
-                            class="d-inline-block  align-middle mt-1 {{Session::get('direction') === "rtl" ? 'ml-md-2 ml-sm-0' : 'mr-md-2 mr-sm-0'}} fs-14 text-muted">({{$overallRating[0]}})</span>
-                    <span class="font-regular font-for-tab d-inline-block font-size-sm text-body align-middle mt-1 {{Session::get('direction') === "rtl" ? 'mr-1 ml-md-2 ml-1 pr-md-2 pr-sm-1 pl-md-2 pl-sm-1' : 'ml-1 mr-md-2 mr-1 pl-md-2 pl-sm-1 pr-md-2 pr-sm-1'}}"><span class="web-text-primary">{{$overallRating[1]}}</span> {{translate('reviews')}}</span>
+                        class="d-inline-block  align-middle mt-1 {{Session::get('direction') === "rtl" ? 'ml-md-2 ml-sm-0' : 'mr-md-2 mr-sm-0'}} fs-14 text-muted">({{$overallRating[0]}})</span>
+                    <span
+                        class="font-regular font-for-tab d-inline-block font-size-sm text-body align-middle mt-1 {{Session::get('direction') === "rtl" ? 'mr-1 ml-md-2 ml-1 pr-md-2 pr-sm-1 pl-md-2 pl-sm-1' : 'ml-1 mr-md-2 mr-1 pl-md-2 pl-sm-1 pr-md-2 pr-sm-1'}}"><span
+                            class="web-text-primary">{{$overallRating[1]}}</span> {{translate('reviews')}}</span>
                     <span class="__inline-25"></span>
-                    <span class="font-regular font-for-tab d-inline-block font-size-sm text-body align-middle mt-1 {{Session::get('direction') === "rtl" ? 'mr-1 ml-md-2 ml-1 pr-md-2 pr-sm-1 pl-md-2 pl-sm-1' : 'ml-1 mr-md-2 mr-1 pl-md-2 pl-sm-1 pr-md-2 pr-sm-1'}}">
+                    <span
+                        class="font-regular font-for-tab d-inline-block font-size-sm text-body align-middle mt-1 {{Session::get('direction') === "rtl" ? 'mr-1 ml-md-2 ml-1 pr-md-2 pr-sm-1 pl-md-2 pl-sm-1' : 'ml-1 mr-md-2 mr-1 pl-md-2 pl-sm-1 pr-md-2 pr-sm-1'}}">
                         <span class="web-text-primary">
                             {{$countOrder}}
                         </span> {{translate('orders')}}   </span>
                     <span class="__inline-25">    </span>
-                    <span class="font-regular font-for-tab d-inline-block font-size-sm text-body align-middle mt-1 {{Session::get('direction') === "rtl" ? 'mr-1 ml-md-2 ml-0 pr-md-2 pr-sm-1 pl-md-2 pl-sm-1' : 'ml-1 mr-md-2 mr-0 pl-md-2 pl-sm-1 pr-md-2 pr-sm-1'}} text-capitalize">
+                    <span
+                        class="font-regular font-for-tab d-inline-block font-size-sm text-body align-middle mt-1 {{Session::get('direction') === "rtl" ? 'mr-1 ml-md-2 ml-0 pr-md-2 pr-sm-1 pl-md-2 pl-sm-1' : 'ml-1 mr-md-2 mr-0 pl-md-2 pl-sm-1 pr-md-2 pr-sm-1'}} text-capitalize">
                         <span class="web-text-primary countWishlist-{{ $product->id }}"> {{$countWishlist}}</span> {{translate('wish_listed')}}
                     </span>
 
@@ -168,7 +175,8 @@
 
                         @if(count($productAuthorsInfo['data']) > 0)
                             <div class="d-flex align-items-center g-2 me-2">
-                                <span class="text-capitalize digital-product-author-title">{{ translate('Author') }} :</span>
+                                <span
+                                    class="text-capitalize digital-product-author-title">{{ translate('Author') }} :</span>
                                 <div class="item-list">
                                     @foreach($productAuthorsInfo['data'] as $productAuthor)
                                         <a href="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}"
@@ -181,14 +189,15 @@
                         @endif
                     </div>
                 @endif
-
-                <div class="mb-3">
-                    <span class="font-weight-normal text-accent d-flex align-items-end gap-2">
-                        {!! getPriceRangeWithDiscount(product: $product) !!}
-                    </span>
-                </div>
-                <form id="add-to-cart-form" class="mb-2 addToCartDynamicForm">
+                <form class="mb-2 addToCartDynamicForm add-to-cart-details-form">
                     @csrf
+
+                    <div class="mb-3">
+                        <span class="font-weight-normal text-accent d-flex align-items-end gap-2">
+                            {!! getPriceRangeWithDiscount(product: $product) !!}
+                        </span>
+                    </div>
+
                     <input type="hidden" name="id" value="{{ $product->id }}">
                     <div class="position-relative {{Session::get('direction') === "rtl" ? 'ml-n4' : 'mr-n4'}} mb-3">
                         @if (count(json_decode($product->colors)) > 0)
@@ -205,10 +214,11 @@
                                                        name="color" value="{{ $color }}"
                                                        @if($key == 0) checked @endif>
                                                 <label style="background: {{ $color }};"
-                                                    class="quick-view-preview-image-by-color shadow-border"
-                                                    for="{{ $product->id }}-color-{{ str_replace('#','',$color) }}"
-                                                    data-toggle="tooltip"
-                                                    data-key="{{ str_replace('#','',$color) }}" data-title="{{ \App\Utils\get_color_name($color) }}">
+                                                       class="quick-view-preview-image-by-color shadow-border"
+                                                       for="{{ $product->id }}-color-{{ str_replace('#','',$color) }}"
+                                                       data-toggle="tooltip"
+                                                       data-key="{{ str_replace('#','',$color) }}"
+                                                       data-title="{{ getColorNameByCode(code: $color) }}">
                                                     <span class="outline"></span>
                                                 </label>
                                             </li>
@@ -236,9 +246,11 @@
                                 <ul class="checkbox-alphanumeric checkbox-alphanumeric--style-1 mt-1">
                                     @foreach ($choice->options as $index => $option)
                                         <span>
-                                            <input type="radio" id="{{ $choice->name }}-{{ $option }}" name="{{ $choice->name }}"
+                                            <input type="radio" id="{{ $choice->name }}-{{ $option }}"
+                                                   name="{{ $choice->name }}"
                                                    value="{{ $option }}" @if($index==0) checked @endif>
-                                            <label class="user-select-none" for="{{ $choice->name }}-{{ $option }}">{{ $option }}</label>
+                                            <label class="user-select-none"
+                                                   for="{{ $choice->name }}-{{ $option }}">{{ $option }}</label>
                                         </span>
                                     @endforeach
                                 </ul>
@@ -250,12 +262,14 @@
                     @if($product['product_type'] == 'digital' && $product['digital_product_file_types'] && count($product['digital_product_file_types']) > 0 && $product['digital_product_extensions'])
                         @foreach($product['digital_product_extensions'] as $extensionKey => $extensionGroup)
                             <div class="row flex-start mx-0 align-items-center mb-1">
-                                <div class="product-description-label text-dark font-bold {{Session::get('direction') === "rtl" ? 'pl-2' : 'pr-2'}} text-capitalize mb-2">
+                                <div
+                                    class="product-description-label text-dark font-bold {{Session::get('direction') === "rtl" ? 'pl-2' : 'pr-2'}} text-capitalize mb-2">
                                     {{ translate($extensionKey) }} :
                                 </div>
                                 <div>
                                     @if(count($extensionGroup) > 0)
-                                        <div class="list-inline checkbox-alphanumeric checkbox-alphanumeric--style-1 mb-0 mx-1 flex-start row ps-0">
+                                        <div
+                                            class="list-inline checkbox-alphanumeric checkbox-alphanumeric--style-1 mb-0 mx-1 flex-start row ps-0">
                                             @foreach($extensionGroup as $index => $extension)
                                                 <div>
                                                     <div class="for-mobile-capacity">
@@ -282,20 +296,23 @@
                     <div class="mb-3">
                         <div class="product-quantity d-flex flex-column __gap-15">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="product-description-label text-dark font-bold mt-0">{{translate('quantity')}}
-                                    :
+                                <div class="product-description-label text-dark font-bold mt-0">
+                                    {{ translate('quantity') }} :
                                 </div>
-                                <div class="d-flex justify-content-center align-items-center quantity-box border rounded border-base web-text-primary">
+                                <div
+                                    class="d-flex justify-content-center align-items-center quantity-box border rounded border-base web-text-primary">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-number __p-10 web-text-primary" type="button" data-type="minus"
+                                    <button class="btn btn-number __p-10 web-text-primary" type="button"
+                                            data-type="minus"
                                             data-field="quantity"
                                             disabled="disabled">
                                         -
                                     </button>
                                 </span>
                                     <input type="text" name="quantity"
-                                           class="form-control input-number text-center cart-qty-field __inline-29 border-0 "
-                                           placeholder="{{ translate('1') }}" value="{{ $product->minimum_order_qty ?? 1 }}"
+                                           class="form-control input-number text-center product-details-cart-qty __inline-29 border-0 "
+                                           placeholder="{{ translate('1') }}"
+                                           value="{{ $product->minimum_order_qty ?? 1 }}"
                                            data-producttype="{{ $product->product_type }}"
                                            min="{{ $product->minimum_order_qty ?? 1 }}"
                                            max="{{$product['product_type'] == 'physical' ? $product->current_stock : 100}}">
@@ -307,19 +324,20 @@
                                     </button>
                                 </span>
                                 </div>
-                                <input type="hidden" class="product-generated-variation-code" name="product_variation_code" data-product-id="{{ $product['id'] }}">
-                                <input type="hidden" value="" class="in_cart_key form-control w-50" name="key">
+                                <input type="hidden" class="product-generated-variation-code"
+                                       name="product_variation_code" data-product-id="{{ $product['id'] }}">
+                                <input type="hidden" value="" class="product-exist-in-cart-list form-control w-50"
+                                       name="key">
                             </div>
-                            <div id="chosen_price_div">
-                                <div
-                                        class="d-flex justify-content-start align-items-center me-2">
+                            <div class="product-details-chosen-price-section">
+                                <div class="d-flex justify-content-start align-items-center me-2">
                                     <div class="product-description-label text-dark font-bold text-capitalize">
                                         <strong>{{translate('total_price')}}</strong> :
                                     </div>
-                                    &nbsp; <strong id="chosen_price" class="text-base"></strong>
+                                    &nbsp; <strong class="text-base product-details-chosen-price-amount"></strong>
                                     <small class="ms-2 font-regular">
                                         (<small>{{translate('tax')}} : </small>
-                                        <small id="set-tax-amount"></small>)
+                                        <small class="product-details-tax-amount"></small>)
                                     </small>
                                 </div>
                             </div>
@@ -327,7 +345,8 @@
                     </div>
 
                     @php($guestCheckout = getWebConfig(name: 'guest_checkout'))
-                    <div class="__btn-grp align-items-center mb-2 product-add-and-buy-section" {!! $firstVariationQuantity <= 0 ? 'style="display: none;"' : '' !!}>
+                    <div
+                        class="__btn-grp align-items-center mb-2 product-add-and-buy-section" {!! $firstVariationQuantity <= 0 ? 'style="display: none;"' : '' !!}>
                         @if(($product->added_by == 'seller' && ($seller_temporary_close || (isset($product->seller->shop) &&
                         $product->seller->shop->vacation_status && $currentDate >= $seller_vacation_start_date && $currentDate
                         <= $seller_vacation_end_date))) || ($product->added_by == 'admin' && ($inhouse_temporary_close ||
@@ -342,26 +361,34 @@
                                 {{translate('add_to_cart')}}
                             </button>
                         @else
-                            <button class="btn btn-secondary action-buy-now-this-product"
-                                type="button"
-                                data-auth-status="{{($guestCheckout == 1 || Auth::guard('customer')->check() ? 'true':'false')}}"
-                                data-route="{{ route('shop-cart') }}"
+                            <button class="btn btn-secondary product-buy-now-button"
+                                    type="button"
+                                    data-form=".add-to-cart-details-form"
+                                    data-auth="{{( getWebConfig(name: 'guest_checkout') == 1 || Auth::guard('customer')->check() ? 'true':'false')}}"
+                                    data-route="{{ route('shop-cart') }}"
                             >
                                 {{translate('buy_now')}}
                             </button>
-                            <button class="btn btn--primary string-limit action-add-to-cart-form" type="button" data-update-text="{{ translate('update_cart') }}" data-add-text="{{ translate('add_to_cart') }}">
+                            <button class="btn btn--primary string-limit product-add-to-cart-button"
+                                    type="button"
+                                    data-form=".add-to-cart-details-form"
+                                    data-update="{{ translate('update_cart') }}"
+                                    data-add="{{ translate('add_to_cart') }}"
+                            >
                                 {{translate('add_to_cart')}}
                             </button>
                         @endif
 
-                        <button type="button" data-product-id="{{$product['id']}}" class="btn __text-18px border product-action-add-wishlist">
+                        <button type="button" data-product-id="{{$product['id']}}"
+                                class="btn __text-18px border product-action-add-wishlist">
                             <i class="fa {{($wishlist_status == 1?'fa-heart':'fa-heart-o')}} wishlist_icon_{{$product['id']}} web-text-primary"
-                            id="wishlist_icon_{{$product['id']}}" aria-hidden="true"></i>
+                               id="wishlist_icon_{{$product['id']}}" aria-hidden="true"></i>
                             <span class="fs-14 text-muted align-bottom countWishlist-{{$product['id']}}">
                                 {{$countWishlist}}
                             </span>
                             <div class="wishlist-tooltip" x-placement="top">
-                                <div class="arrow"></div><div class="inner">
+                                <div class="arrow"></div>
+                                <div class="inner">
                                     <span class="add">{{translate('added_to_wishlist')}}</span>
                                     <span class="remove">{{translate('removed_from_wishlist')}}</span>
                                 </div>
@@ -376,19 +403,35 @@
                             <div class="alert alert-danger" role="alert">
                                 {{translate('this_shop_is_temporary_closed_or_on_vacation._You_cannot_add_product_to_cart_from_this_shop_for_now')}}
                             </div>
-                       @endif
+                        @endif
                     </div>
 
                     @if(($product['product_type'] == 'physical'))
-                        <div class="product-restock-request-section collapse" {!! $firstVariationQuantity <= 0 ? 'style="display: block;"' : '' !!}>
+                        <div
+                            class="product-restock-request-section collapse" {!! $firstVariationQuantity <= 0 ? 'style="display: block;"' : '' !!}>
                             <button type="button"
-                                    class="btn request-restock-btn btn-outline-primary fw-semibold product-restock-request-button"
+                                    class="btn request-restock-btn btn-outline-primary fw-semibold product-restock-request-button me-2"
                                     data-auth="{{ auth('customer')->check() }}"
                                     data-form=".addToCartDynamicForm"
                                     data-default="{{ translate('Request_Restock') }}"
                                     data-requested="{{ translate('Request_Sent') }}"
                             >
                                 {{ translate('Request_Restock') }}
+                            </button>
+                            <button type="button" data-product-id="{{$product['id']}}"
+                                    class="btn __text-18px border product-action-add-wishlist">
+                                <i class="fa {{($wishlist_status == 1?'fa-heart':'fa-heart-o')}} wishlist_icon_{{$product['id']}} web-text-primary"
+                                   id="wishlist_icon_{{$product['id']}}" aria-hidden="true"></i>
+                                <span class="fs-14 text-muted align-bottom countWishlist-{{$product['id']}}">
+                                {{$countWishlist}}
+                            </span>
+                                <div class="wishlist-tooltip" x-placement="top">
+                                    <div class="arrow"></div>
+                                    <div class="inner">
+                                        <span class="add">{{translate('added_to_wishlist')}}</span>
+                                        <span class="remove">{{translate('removed_from_wishlist')}}</span>
+                                    </div>
+                                </div>
                             </button>
                         </div>
                     @endif

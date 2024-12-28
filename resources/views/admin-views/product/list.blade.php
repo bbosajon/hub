@@ -169,17 +169,24 @@
                             </tr>
                             </thead>
                             <tbody>
-                            @foreach($products as $key=>$product)
+                            @foreach($products as $key => $product)
                                 <tr>
                                     <th scope="row">{{ $products->firstItem()+$key}}</th>
                                     <td>
                                         <a href="{{ route('admin.products.view',['addedBy'=>($product['added_by']=='seller'?'vendor' : 'in-house'),'id'=>$product['id']]) }}"
                                            class="media align-items-center gap-2">
                                             <img src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'backend-product') }}"
-                                                 class="avatar border" alt="">
-                                            <span class="media-body title-color hover-c1">
-                                            {{ Str::limit($product['name'], 20) }}
-                                        </span>
+                                                 class="avatar border object-fit-cover" alt="">
+                                            <div>
+                                                <div class="media-body title-color hover-c1">
+                                                    {{ Str::limit($product['name'], 20) }}
+                                                </div>
+                                                @if($product?->clearanceSale)
+                                                    <div class="badge badge-soft-warning user-select-none">
+                                                        {{ translate('Clearance_Sale') }}
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </a>
                                     </td>
                                     <td class="text-center">

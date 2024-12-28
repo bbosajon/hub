@@ -22,7 +22,7 @@ if (!function_exists('translate')) {
             $translatedMessagesArray = include(base_path('resources/lang/' . $local . '/messages.php'));
             $newMessagesArray = include(base_path('resources/lang/' . $local . '/new-messages.php'));
             $key = str_replace('"', '', $key);
-            $processedKey = ucfirst(str_replace('_', ' ', removeSpecialCharacters(str_replace("\'", "'", $key))));
+            $processedKey = ucfirst(str_replace('_', ' ', removeSpecialCharacters($key)));
 
             if (!array_key_exists($key, $translatedMessagesArray) && !array_key_exists($key, $newMessagesArray)) {
                 $newMessagesArray[$key] = $processedKey;

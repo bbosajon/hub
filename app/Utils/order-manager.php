@@ -213,7 +213,7 @@ class OrderManager
         // coupon transaction end
 
         // free delivery over amount transaction start
-        if($order->is_shipping_free && $order->seller_is == 'seller') {
+        if ($order->is_shipping_free && $order->seller_is == 'seller') {
 
             $seller_wallet = SellerWallet::where('seller_id', $order->seller_id)->first();
             $admin_wallet = AdminWallet::where('admin_id', 1)->first();
@@ -241,12 +241,12 @@ class OrderManager
                 $payer_id = $order->seller_id;
                 $payment_receiver_id = $order->seller_id;
                 $paid_to = 'admin';
-            }elseif($order->free_delivery_bearer == 'seller' && $order->shipping_responsibility == 'sellerwise_shipping'){
+            } elseif ($order->free_delivery_bearer == 'seller' && $order->shipping_responsibility == 'sellerwise_shipping') {
                 $paid_by = 'seller';
                 $payer_id = $order->seller_id;
                 $payment_receiver_id = $order->seller_id;
                 $paid_to = 'seller';
-            }elseif ($order->free_delivery_bearer == 'admin' && $order->shipping_responsibility == 'inhouse_shipping') {
+            } elseif ($order->free_delivery_bearer == 'admin' && $order->shipping_responsibility == 'inhouse_shipping') {
                 $paid_by = 'admin';
                 $payer_id = 1;
                 $payment_receiver_id = $order->seller_id;
@@ -271,7 +271,6 @@ class OrderManager
         // free delivery over amount transaction end
 
 
-
         if ($order['payment_method'] == 'cash_on_delivery' || $order['payment_method'] == 'offline_payment') {
             DB::table('order_transactions')->insert([
                 'transaction_id' => OrderManager::gen_unique_id(),
@@ -284,7 +283,7 @@ class OrderManager
                 'admin_commission' => $commission,
                 'received_by' => $received_by,
                 'status' => 'disburse',
-                'delivery_charge' => $order['shipping_cost'] - ($order['is_shipping_free'] ? $order['extra_discount']:0),
+                'delivery_charge' => $order['shipping_cost'] - ($order['is_shipping_free'] ? $order['extra_discount'] : 0),
                 'tax' => $order_summary['total_tax'],
                 'delivered_by' => $received_by,
                 'payment_method' => $order['payment_method'],
@@ -332,7 +331,7 @@ class OrderManager
             if ($order['seller_is'] == 'admin') {
                 $wallet = AdminWallet::where('admin_id', 1)->first();
                 $wallet->inhouse_earning += $order_amount;
-                ($shipping_model == 'sellerwise_shipping' && !$order['is_shipping_free']) ? $wallet->delivery_charge_earned += $order['shipping_cost']:null;
+                ($shipping_model == 'sellerwise_shipping' && !$order['is_shipping_free']) ? $wallet->delivery_charge_earned += $order['shipping_cost'] : null;
                 $wallet->total_tax_collected += $order_summary['total_tax'];
                 $wallet->save();
             } else {
@@ -340,7 +339,7 @@ class OrderManager
                 $wallet->commission_given += $commission;
 
                 if ($shipping_model == 'sellerwise_shipping') {
-                   !$order['is_shipping_free'] ? $wallet->delivery_charge_earned += $order['shipping_cost'] : null;
+                    !$order['is_shipping_free'] ? $wallet->delivery_charge_earned += $order['shipping_cost'] : null;
                     $wallet->total_earning += ($order_amount - $commission) + $order_summary['total_tax'] + $order['shipping_cost'];
                 } else {
                     $wallet->total_earning += ($order_amount - $commission) + $order_summary['total_tax'];
@@ -362,8 +361,8 @@ class OrderManager
             $coupon_discount = $req['coupon_discount'];
         }
 
-        $carts = $req ? CartManager::get_cart_for_api(request: $req) : CartManager::get_cart();
-        $group_id_wise_cart = CartManager::get_cart(groupId: $data['cart_group_id']);
+        $carts = $req ? CartManager::get_cart_for_api(request: $req) : CartManager::getCartListQuery();
+        $group_id_wise_cart = CartManager::getCartListQuery(groupId: $data['cart_group_id']);
         $total_amount = 0;
         foreach ($carts as $cart) {
             if (($coupon->seller_id == NULL && $cart->seller_is == 'admin') || $coupon->seller_id == '0' || ($coupon->seller_id == $cart->seller_id && $cart->seller_is == 'seller')) {
@@ -379,7 +378,7 @@ class OrderManager
             if ($coupon->coupon_type == 'discount_on_purchase' || $coupon->coupon_type == 'first_order') {
                 $group_id_percent = array();
                 foreach ($cart_group_ids as $cart_group_id) {
-                    $cart_group_data = $req ? CartManager::get_cart_for_api(request: $req, groupId: $cart_group_id) : CartManager::get_cart(groupId: $cart_group_id);
+                    $cart_group_data = $req ? CartManager::get_cart_for_api(request: $req, groupId: $cart_group_id) : CartManager::getCartListQuery(groupId: $cart_group_id);
                     $cart_group_amount = 0;
                     if ($coupon->seller_id == NULL || $coupon->seller_id == '0' || $coupon->seller_id == $cart_group_data[0]->seller_id) {
                         $cart_group_amount = $cart_group_data->sum(function ($item) {
@@ -396,7 +395,7 @@ class OrderManager
 
                 $free_shipping_by_group_id = array();
                 foreach ($cart_group_ids as $cart_group_id) {
-                    $cart_group_data = $req ? CartManager::get_cart_for_api(request: $req, groupId: $cart_group_id) : CartManager::get_cart(groupId: $cart_group_id);
+                    $cart_group_data = $req ? CartManager::get_cart_for_api(request: $req, groupId: $cart_group_id) : CartManager::getCartListQuery(groupId: $cart_group_id);
 
                     if ($shippingMethod == 'inhouse_shipping') {
                         $admin_shipping = \App\Models\ShippingType::where('seller_id', 0)->first();
@@ -454,7 +453,7 @@ class OrderManager
 
         $isGuestUser = ($user == 'offline') ? 1 : 0;
         if ($req) {
-            $isGuestUser = isset($req['is_guest']) && $req['is_guest']  ? 1 : 0;
+            $isGuestUser = isset($req['is_guest']) && $req['is_guest'] ? 1 : 0;
         }
 
         $guest_id = session('guest_id');
@@ -474,22 +473,22 @@ class OrderManager
             ShippingAddress::where(['customer_id' => $customerID, 'is_guest' => 1, 'id' => session('billing_address_id')])
                 ->update(['customer_id' => $getCustomerID, 'is_guest' => 0]);
 
-        }elseif ($user == 'offline' && isset($data['newCustomerRegister'])) {
+        } elseif ($user == 'offline' && isset($data['newCustomerRegister'])) {
             $getCustomerID = $data['newCustomerRegister'] ? $data['newCustomerRegister']['id'] : $guest_id;
             $isGuestUserInOrder = $data['newCustomerRegister'] ? 0 : 1;
-        }elseif ($user == 'offline' && isset($data['new_customer_id'])) {
+        } elseif ($user == 'offline' && isset($data['new_customer_id'])) {
             $getCustomerID = $data['new_customer_id'];
             $isGuestUserInOrder = $data['new_customer_id'] ? 0 : 1;
-        }else {
+        } else {
             $isGuestUserInOrder = $isGuestUser;
         }
 
-        $coupon_process = array(
+        $couponProcess = [
             'discount' => 0,
             'coupon_bearer' => 'inhouse',
             'coupon_code' => 0,
             'coupon_type' => NULL,
-        );
+        ];
 
         if (!$isGuestUser && (isset($req['coupon_code']) && $req['coupon_code']) || session()->has('coupon_code')) {
             $coupon_code = $req['coupon_code'] ?? session('coupon_code');
@@ -497,7 +496,7 @@ class OrderManager
                 ->where('status', 1)
                 ->first();
 
-            $coupon_process = $coupon ? self::coupon_process($data, $coupon) : $coupon_process;
+            $couponProcess = $coupon ? self::coupon_process($data, $coupon) : $couponProcess;
         }
 
         $order_id = 100000 + Order::all()->count() + 1;
@@ -506,23 +505,23 @@ class OrderManager
         }
         $address_id = session('address_id') ? session('address_id') : null;
         $billing_address_id = session('billing_address_id') ? session('billing_address_id') : null;
-        $coupon_code = $coupon_process['coupon_code'];
-        $coupon_bearer = $coupon_process['coupon_bearer'];
-        $discount = $coupon_process['discount'];
-        $discount_type = $coupon_process['discount'] == 0 ? null : 'coupon_discount';
+        $coupon_code = $couponProcess['coupon_code'];
+        $coupon_bearer = $couponProcess['coupon_bearer'];
+        $discount = $couponProcess['discount'];
+        $discount_type = $couponProcess['discount'] == 0 ? null : 'coupon_discount';
         $order_note = $req['order_note'] ?? session('order_note');
 
         $cart_group_id = $data['cart_group_id'];
         $admin_commission = (float)str_replace(",", "", Helpers::sales_commission_before_order($cart_group_id, $discount));
 
         $is_shipping_free = 0;
-        $free_shipping_discount = 0;
+        $freeShippingDiscount = 0;
         $free_shipping_type = NULL;
         $free_shipping_responsibility = NULL;
-        $free_delivery = OrderManager::free_delivery_order_amount($cart_group_id);
-        if($free_delivery['status'] && $free_delivery['shipping_cost_saved'] > 0  && $coupon_process['coupon_type'] !='free_delivery'){
+        $free_delivery = OrderManager::getFreeDeliveryOrderAmountArray($cart_group_id);
+        if ($free_delivery['status'] && $free_delivery['shipping_cost_saved'] > 0 && $couponProcess['coupon_type'] != 'free_delivery') {
             $is_shipping_free = 1;
-            $free_shipping_discount = CartManager::get_shipping_cost(groupId: $data['cart_group_id'], type: 'checked');
+            $freeShippingDiscount = CartManager::get_shipping_cost(groupId: $data['cart_group_id'], type: 'checked');
             $free_shipping_type = 'free_shipping_over_order_amount';
             $free_shipping_responsibility = $free_delivery['responsibility'];
         }
@@ -575,7 +574,7 @@ class OrderManager
             'discount_type' => $discount_type,
             'coupon_code' => $coupon_code,
             'coupon_discount_bearer' => $coupon_bearer,
-            'order_amount' => CartManager::cart_grand_total(cartGroupId: $cart_group_id, type: 'checked') - $discount - $free_shipping_discount,
+            'order_amount' => CartManager::cart_grand_total(cartGroupId: $cart_group_id, type: 'checked') - $discount - $freeShippingDiscount,
             'admin_commission' => $admin_commission,
             'shipping_address' => $address_id,
             'shipping_address_data' => ShippingAddress::find($address_id),
@@ -583,7 +582,7 @@ class OrderManager
             'billing_address_data' => ShippingAddress::find($billing_address_id),
             'shipping_responsibility' => getWebConfig(name: 'shipping_method'),
             'shipping_cost' => CartManager::get_shipping_cost(groupId: $data['cart_group_id'], type: 'checked'),
-            'extra_discount' => $free_shipping_discount,
+            'extra_discount' => $freeShippingDiscount,
             'extra_discount_type' => $free_shipping_type,
             'free_delivery_bearer' => $seller_data->seller_is == 'seller' ? $free_shipping_responsibility : 'admin',
             'is_shipping_free' => $is_shipping_free,
@@ -594,8 +593,7 @@ class OrderManager
             'order_note' => $order_note
         ];
 
-        if($data['payment_method'] == 'offline_payment')
-        {
+        if ($data['payment_method'] == 'offline_payment') {
             OfflinePayments::insert([
                 'order_id' => $order_id,
                 'payment_info' => json_encode($data['offline_payment_info']),
@@ -607,8 +605,10 @@ class OrderManager
         DB::table('orders')->insertGetId($or);
         self::add_order_status_history($order_id, $getCustomerID, $data['payment_status'] == 'paid' ? 'confirmed' : 'pending', 'customer');
 
-        foreach (CartManager::get_cart(groupId: $data['cart_group_id'], type: 'checked') as $cartSingleItem) {
-            $product = Product::where(['id' => $cartSingleItem['product_id']])->with('digitalVariation')->first()->toArray();
+        foreach (CartManager::getCartListQuery(groupId: $data['cart_group_id'], type: 'checked') as $cartSingleItem) {
+            $product = Product::where(['id' => $cartSingleItem['product_id']])->with(['digitalVariation', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])->first()->toArray();
             unset($product['is_shop_temporary_close']);
             unset($product['thumbnail_full_url']);
             unset($product['color_images_full_url']);
@@ -627,10 +627,11 @@ class OrderManager
                 $product['digital_file_ready'] = $digitalProductVariation['file'];
                 $product['storage_path'] = $getStoragePath ? $getStoragePath['value'] : 'public';
             } elseif ($product['digital_product_type'] == 'ready_product' && !empty($product['digital_file_ready'])) {
-                $product['storage_path'] = $product['digital_file_ready_storage_type'] ??  'public';
+                $product['storage_path'] = $product['digital_file_ready_storage_type'] ?? 'public';
             }
 
             $price = $cartSingleItem['tax_model'] == 'include' ? $cartSingleItem['price'] - $cartSingleItem['tax'] : $cartSingleItem['price'];
+            $productDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $cartSingleItem['price']);
             $orderDetails = [
                 'order_id' => $order_id,
                 'product_id' => $cartSingleItem['product_id'],
@@ -640,7 +641,7 @@ class OrderManager
                 'price' => $price,
                 'tax' => $cartSingleItem['tax'] * $cartSingleItem['quantity'],
                 'tax_model' => $cartSingleItem['tax_model'],
-                'discount' => $cartSingleItem['discount'] * $cartSingleItem['quantity'],
+                'discount' => $productDiscount * $cartSingleItem['quantity'],
                 'discount_type' => 'discount_on_product',
                 'variant' => $cartSingleItem['variant'],
                 'variation' => $cartSingleItem['variations'],
@@ -673,7 +674,7 @@ class OrderManager
 
         }
 
-        $order = Order::with('customer', 'seller.shop','details')->find($order_id);
+        $order = Order::with('customer', 'seller.shop', 'details')->find($order_id);
         if ($or['payment_method'] != 'cash_on_delivery' && $or['payment_method'] != 'offline_payment') {
             $order_summary = OrderManager::order_summary($order);
             $order_amount = $order_summary['subtotal'] - $order_summary['total_discount_on_product'] - $order['discount'];
@@ -717,28 +718,28 @@ class OrderManager
         } else {
             $seller = Seller::find($seller_data->seller_id);
             /**send message to seller  */
-            if($seller) {
+            if ($seller) {
                 $notification = (object)[
-                    'key'=>'new_order_message',
-                    'type'=>'seller',
-                    'order'=>$order,
+                    'key' => 'new_order_message',
+                    'type' => 'seller',
+                    'order' => $order,
                 ];
                 event(new OrderPlacedEvent(notification: $notification));
             }
         }
-        if($user !='offline') {
+        if ($user != 'offline') {
             if ($order['payment_method'] != 'cash_on_delivery' && $order['payment_method'] != 'offline_payment') {
                 $notification = (object)[
-                    'key'=>'confirmed',
-                    'type'=>'customer',
-                    'order'=>$order,
+                    'key' => 'confirmed',
+                    'type' => 'customer',
+                    'order' => $order,
                 ];
                 event(new OrderPlacedEvent(notification: $notification));
             } else {
                 $notification = (object)[
-                    'key'=>'pending',
-                    'type'=>'customer',
-                    'order'=>$order,
+                    'key' => 'pending',
+                    'type' => 'customer',
+                    'order' => $order,
                 ];
                 event(new OrderPlacedEvent(notification: $notification));
             }
@@ -750,19 +751,19 @@ class OrderManager
                 $emailServices_smtp = getWebConfig(name: 'mail_config_sendgrid');
             }
             if ($emailServices_smtp['status'] == 1) {
-                if($isGuestUser) {
+                if ($isGuestUser) {
                     $offline_user = ShippingAddress::where('id', $address_id)->first();
-                    if(!$offline_user) {
+                    if (!$offline_user) {
                         $offline_user = ShippingAddress::find($billing_address_id);
                     }
                     $email = $offline_user['email'];
                     $userName = $offline_user['contact_person_name'];
-                }else{
+                } else {
                     if ($req) {
                         $getLoggedUser = User::find($getCustomerID);
                         $email = $getLoggedUser['email'];
                         $userName = $getLoggedUser['f_name'];
-                    }else{
+                    } else {
                         $email = $user['email'];
                         $userName = $user['f_name'];
                     }
@@ -777,7 +778,7 @@ class OrderManager
                     'orderId' => $order_id,
                     'shopName' => $seller?->shop?->name ?? getWebConfig('company_name'),
                     'shopId' => $seller?->shop?->id ?? 0,
-                    'attachmentPath' =>self::storeInvoice($order_id),
+                    'attachmentPath' => self::storeInvoice($order_id),
                 ];
                 event(new OrderPlacedEvent(email: $email, data: $data));
                 $dataForVendor = [
@@ -803,10 +804,10 @@ class OrderManager
      * @param $data
      * @return int
      */
-    public static function updated_generate_order($data) : int
+    public static function updated_generate_order($data): int
     {
         $req = array_key_exists('request', $data) ? $data['request'] : null;
-        $coupon_process = array(
+        $couponProcess = array(
             'discount' => 0,
             'coupon_bearer' => 'inhouse',
             'coupon_code' => 0,
@@ -817,7 +818,7 @@ class OrderManager
                 ->where('status', 1)
                 ->first();
 
-            $coupon_process = $coupon ? self::coupon_process($data, $coupon) : $coupon_process;
+            $couponProcess = $coupon ? self::coupon_process($data, $coupon) : $couponProcess;
         }
 
         $address_id = session('address_id') ?? null;
@@ -828,9 +829,9 @@ class OrderManager
         $order_id = 100000 + Order::all()->count() + 1;
         $order_id = Order::find($order_id) ? Order::orderBy('id', 'DESC')->first()->id + 1 : $order_id;
         $billing_address_id = session('billing_address_id') ?? null;
-        $coupon_code = $coupon_process['coupon_code'];
-        $coupon_bearer = $coupon_process['coupon_bearer'];
-        $discount = $coupon_process['discount'];
+        $coupon_code = $couponProcess['coupon_code'];
+        $coupon_bearer = $couponProcess['coupon_bearer'];
+        $discount = $couponProcess['discount'];
         $order_note = session()->has('order_note') ? session('order_note') : null;
         $cart_group_id = $data['cart_group_id'];
         $admin_commission = (float)str_replace(",", "", Helpers::sales_commission_before_order($cart_group_id, $discount));
@@ -873,9 +874,9 @@ class OrderManager
 
         //order data insert
         self::order_insert($order_data);
-        $order = Order::with('customer','details')->where($order_data['order_id'])->first();
+        $order = Order::with('customer', 'details')->where($order_data['order_id'])->first();
         $seller = $seller_data->seller_is == 'admin' ? Admin::find($seller_data->seller_id) : Seller::find($seller_data->seller_id);
-        if($seller_data->seller_is == 'seller') {
+        if ($seller_data->seller_is == 'seller') {
             OrderStatusEvent::dispatch('new_order_message', 'seller', $order);
         }
         if ($order['payment_method'] != 'cash_on_delivery' && $order['payment_method'] != 'offline_payment') {
@@ -895,27 +896,27 @@ class OrderManager
                     'userName' => $user['f_name'],
                     'userType' => 'customer',
                     'templateName' => 'order-place',
-                    'order' =>$order,
-                    'orderId'=>$order_id,
+                    'order' => $order,
+                    'orderId' => $order_id,
                     'shopName' => $seller?->shop?->name ?? getWebConfig('company_name'),
                     'shopId' => $seller?->shop?->id ?? 0,
-                    'attachmentPath' =>self::storeInvoice($order_id),
+                    'attachmentPath' => self::storeInvoice($order_id),
                 ];
-                event(new OrderPlacedEvent(email: $user['email'],data: $data));
+                event(new OrderPlacedEvent(email: $user['email'], data: $data));
                 $dataForVendor = [
                     'subject' => translate('new_order_received'),
                     'title' => translate('new_order_received'),
-                    'userType' =>  $seller_data->seller_is == 'admin' ? 'admin':'vendor',
+                    'userType' => $seller_data->seller_is == 'admin' ? 'admin' : 'vendor',
                     'templateName' => 'order-received',
-                    'order' =>$order,
-                    'orderId'=>$order_id,
+                    'order' => $order,
+                    'orderId' => $order_id,
                     'vendorName' => $seller?->f_name,
                     'adminName' => $seller?->name,
                 ];
-                event(new OrderPlacedEvent(email: $seller->email,data: $dataForVendor));
+                event(new OrderPlacedEvent(email: $seller->email, data: $dataForVendor));
             }
         } catch (\Exception $exception) {
-            dd($exception);
+
         }
 
         return $order_id;
@@ -926,7 +927,7 @@ class OrderManager
      * @return int
      * order related insert into
      */
-    public static function order_insert($order_data) : int
+    public static function order_insert($order_data): int
     {
 
         //order data insert start
@@ -968,7 +969,7 @@ class OrderManager
         self::add_order_status_history($order_data['order_id'], auth('customer')->id(), $order_data['data']['payment_status'] == 'paid' ? 'confirmed' : 'pending', 'customer');
 
         //order products info insert into order_details table start
-        foreach (CartManager::get_cart(groupId: $order_data['data']['cart_group_id']) as $c) {
+        foreach (CartManager::getCartListQuery(groupId: $order_data['data']['cart_group_id']) as $c) {
             $product = Product::where(['id' => $c['product_id']])->first();
             $price = $c['tax_model'] == 'include' ? $c['price'] - $c['tax'] : $c['price'];
             $orderDetails = [
@@ -1237,10 +1238,10 @@ class OrderManager
 
         if ($minimumOrderAmountStatus) {
             $query = Cart::whereHas('product', function ($query) {
-                    return $query->active();
-                })->with(['seller', 'allProducts' => function ($query) {
-                    return $query->active();
-                }])
+                return $query->active();
+            })->with(['seller', 'allProducts' => function ($query) {
+                return $query->active();
+            }])
                 ->where([
                     'customer_id' => ($user == 'offline' ? (session('guest_id') ?? $request->guest_id) : $user->id),
                     'is_guest' => ($user == 'offline' ? 1 : '0'),
@@ -1326,10 +1327,9 @@ class OrderManager
         ];
     }
 
-    public static function free_delivery_order_amount($cart_group_id = null): array
+    public static function getFreeDeliveryOrderAmountArray($cart_group_id = null): array
     {
         $freeDeliveryData = [
-            'status' => 0, // full-fill the requirement if status is 1
             'amount' => 0, // free delivery amount
             'percentage' => 0, // completed percentage
             'amount_need' => 0, // need amount for free delivery
@@ -1337,7 +1337,7 @@ class OrderManager
             'cart_id' => $cart_group_id
         ];
 
-        $freeDeliveryData['status'] = (int)getWebConfig(name: 'free_delivery_status');
+        $freeDeliveryData['status'] = (int) (getWebConfig(name: 'free_delivery_status') ?? 0);
         $freeDeliveryData['responsibility'] = (string)getWebConfig(name: 'free_delivery_responsibility');
         $freeDeliveryOverAmount = (float)getWebConfig(name: 'free_delivery_over_amount');
         $freeDeliveryOverAmountSeller = (float)getWebConfig(name: 'free_delivery_over_amount_seller');
@@ -1366,7 +1366,7 @@ class OrderManager
                     }
                 }
 
-                $amount = CartManager::getCartGrandTotalWithoutShippingCharge(cartGroupId : $getCartList->cart_group_id, type: 'checked');
+                $amount = CartManager::getCartGrandTotalWithoutShippingCharge(cartGroupId: $getCartList->cart_group_id, type: 'checked');
                 $freeDeliveryData['amount_need'] = $freeDeliveryData['amount'] - $amount;
                 $freeDeliveryData['percentage'] = ($freeDeliveryData['amount'] > 0) && $amount > 0 && ($freeDeliveryData['amount'] >= $amount) ? number_format(($amount / $freeDeliveryData['amount']) * 100) : 100;
                 if ($freeDeliveryData['status'] == 1 && $freeDeliveryData['percentage'] == 100) {
@@ -1381,11 +1381,11 @@ class OrderManager
     }
 
 
-    public static function storeInvoice($id):string
+    public static function storeInvoice($id): string
     {
         $order = Order::with('seller')->with('shipping')->where('id', $id)->first();
-        $invoiceSettings =  getWebConfig('invoice_settings');
-        $mpdf_view = \View::make(VIEW_FILE_NAMES['order_invoice'], compact('order','invoiceSettings'));
+        $invoiceSettings = getWebConfig('invoice_settings');
+        $mpdf_view = \View::make(VIEW_FILE_NAMES['order_invoice'], compact('order', 'invoiceSettings'));
         return self::storePdf(view: $mpdf_view, filePrefix: 'order_invoice_', filePostfix: $order['id'], pdfType: 'invoice', requestFrom: 'web');
     }
 
@@ -1404,7 +1404,7 @@ class OrderManager
         foreach ($order->details as $detailKey => $detail) {
             $itemPrice += $detail['price'] * $detail['qty'];
             $subTotal += $detail['price'] * $detail['qty'];
-            $productPrice = $detail['price'] * $detail['qty'];
+            $productPrice = ($detail['price'] * $detail['qty']);
             $totalProductPrice += $productPrice;
             $itemDiscount += $detail['discount'];
             $taxTotal += $detail['tax'];
@@ -1427,12 +1427,13 @@ class OrderManager
 
         return [
             'itemPrice' => $itemPrice,
-            'subTotal' => $subTotal - $itemDiscount,
             'itemDiscount' => $itemDiscount,
             'extraDiscount' => $extraDiscount,
+            'subTotal' => $subTotal - $itemDiscount - $extraDiscount,
             'couponDiscount' => $couponDiscount,
             'taxTotal' => $taxTotal,
             'shippingTotal' => $shipping,
+            'deliveryFeeDiscount' => $deliveryFeeDiscount,
             'totalItemQuantity' => $totalItemQuantity,
             'totalAmount' => ($total + $shipping - $extraDiscount - $couponDiscount),
             'paidAmount' => $order['paid_amount'],

@@ -881,6 +881,24 @@ function cartQuantityInitialize() {
     });
 }
 
+function updateProductDetailsTopSection(response) {
+    let formSelector = ".add-to-cart-details-form";
+    $(formSelector).find(".discounted-unit-price").html(response?.discounted_unit_price);
+    $(formSelector).find(".product-details-chosen-price-amount").html(response?.price);
+    $(formSelector).find(".product-total-unit-price").html(response?.discount_amount > 0 ? response?.total_unit_price : "");
+
+    if (response?.discount_amount > 0) {
+        if (response?.discount_type === 'flat') {
+            $(formSelector).find(".discounted_badge").html(`${response?.discount}`);
+        } else {
+            $(formSelector).find(".discounted_badge").html(`- ${response?.discount}`);
+        }
+        $(formSelector).find(".discounted-badge-element").removeClass('d-none');
+    } else {
+        $(formSelector).find(".discounted-badge-element").addClass('d-none');
+    }
+}
+
 function getVariantPrice(type = null) {
     if (
         $("#add-to-cart-form input[name=quantity]").val() > 0 &&
@@ -896,12 +914,14 @@ function getVariantPrice(type = null) {
             url:$("#route-admin-pos-get-variant-price").data("url") +
                 (type ? "?type=" + type : ""),
             data: $("#add-to-cart-form").serializeArray(),
-            success: function (data) {
-                let price ;
-                let tax ;
-                let discount ;
-                stockStatus(data.quantity,'cart-qty-field-plus','cart-qty-field')
-                if (data.inCartStatus == 0) {
+            success: function (response) {
+                updateProductDetailsTopSection(response);
+
+                let price;
+                let tax;
+                let discount;
+                stockStatus(response.quantity,'cart-qty-field-plus','cart-qty-field')
+                if (response.inCartStatus == 0) {
                     $(".default-quantity-system").removeClass("d-none");
                     $(".quick-view-modal-add-cart-button").text(
                         $("#message-add-to-cart").data("text")
@@ -910,9 +930,9 @@ function getVariantPrice(type = null) {
                         .addClass("d--none");
                     $(".default-quantity-system")
                         .removeClass("d--none");
-                    price = data.price;
-                    tax = data.tax;
-                    discount = (data.discount*data.requestQuantity);
+                    price = response.price;
+                    tax = response.tax;
+                    discount = (response.discount*response.requestQuantity);
                 } else {
                     $(".default-quantity-system")
                         .addClass("d--none");
@@ -922,21 +942,21 @@ function getVariantPrice(type = null) {
                         $("#message-update-to-cart").data("text")
                     );
                     if (type == null) {
-                        $(".in-cart-quantity-field").val(data.inCartData.quantity);
-                        data.inCartData.quantity == 1
+                        $(".in-cart-quantity-field").val(response.inCartData.quantity);
+                        response.inCartData.quantity == 1
                             ? buttonDisableOrEnableFunction('in-cart-quantity-minus',true )
                             : "";
-                        price = data.inCartData.price;
-                        tax = data.inCartData.tax;
-                        discount = (data.inCartData.discount*data.inCartData.quantity);
+                        price = response.inCartData.price;
+                        tax = response.inCartData.tax;
+                        discount = (response.inCartData.discount*response.inCartData.quantity);
                     }else{
-                        price = data.price;
-                        tax = data.tax;
-                        discount = (data.discount*data.requestQuantity);
+                        price = response.price;
+                        tax = response.tax;
+                        discount = (response.discount*response.requestQuantity);
                     }
-                    stockStatus(data.quantity,'in-cart-quantity-plus','in-cart-quantity-field')
+                    stockStatus(response.quantity,'in-cart-quantity-plus','in-cart-quantity-field')
                 }
-                setProductData('price-section',price,tax,discount);
+                setProductData('price-section', response.price, tax,response.discount_text);
             },
         });
     }
@@ -979,7 +999,7 @@ function addToCart(form_id = "add-to-cart-form") {
                         $(".cart-qty-field").val(1);
                     }, 500);
                 }
-                $(".call-when-done").click();
+                $(".close-quick-view-modal").click();
 
                 toastr.success(
                     $("#message-item-has-been-added-in-your-cart").data("text"),
@@ -1112,7 +1132,10 @@ function stockStatus(quantity,buttonDisableOrEnableClassName,inputQuantityClassN
 }
 
 function setProductData(parentClass,price,tax,discount){
-    $('.'+parentClass+' '+'.set-price').html(price);
+    let updatedTax = tax.replace(/[^\d.,]/g, '');
+    if(updatedTax <= 0) {
+        $('.tax-container').empty()
+    }
     $('.'+parentClass+' '+'.set-product-tax').html(tax);
     $('.'+parentClass+' '+'.set-discount-amount').html(discount);
 }

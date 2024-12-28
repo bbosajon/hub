@@ -1,6 +1,6 @@
 @extends('layouts.front-end.app')
 
-@section('title',translate($data['data_from']).' '.translate('products'))
+@section('title',translate($data['offer_type']).' '.translate('products'))
 
 @push('css_or_js')
     <meta property="og:image" content="{{$web_config['web_logo']['path']}}"/>
@@ -28,15 +28,15 @@
                     data-all="{{ translate('all') }}"
                     data-digital="{{ translate('digital') }}"
                     data-physical="{{ translate('physical') }}">
-                        {{ translate(str_replace('_',' ',$data['data_from'])) }} {{ request('product_type') == 'digital' ? translate(request('product_type')) : ''}}
+                        {{ translate(str_replace('_',' ',$data['offer_type'])) }} {{ request('product_type') == 'digital' ? translate(request('product_type')) : ''}}
                     </span>
                     {{ translate('products') }} {{ isset($data['brand_name']) ? '('.$data['brand_name'].')' : ''}}
                 </h5>
-                <div><span class="view-page-item-count">{{$products->total()}}</span> {{translate('items_found')}}</div>
+                <div><span class="view-page-item-count clearance-sale-count">{{$products->total()}}</span> {{translate('items_found')}}</div>
             </div>
             <div class="d-flex flex-wrap gap-3">
                 <form id="search-form" class="d-none d-lg-block" action="{{ route('products') }}" method="GET">
-                    <input hidden name="data_from" value="{{$data['data_from']}}">
+                    <input hidden name="data_from" value="{{$data['offer_type']}}">
                     <div class="sorting-item">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" viewBox="0 0 20 21" fill="none">
                             <path d="M11.6667 7.80078L14.1667 5.30078L16.6667 7.80078" stroke="#D9D9D9" stroke-width="2"
@@ -107,7 +107,6 @@
                 id="SearchParameters">
                 <div class="cz-sidebar __inline-35 p-4 overflow-hidden" id="shop-sidebar">
                     <div class="cz-sidebar-header p-0">
-                        <h6 class="font-semibold fs-20 mb-2">{{ translate('Sidebar') }}</h6>
                         <button class="close ms-auto fs-18-mobile"
                                 type="button" data-dismiss="sidebar" aria-label="Close">
                             <i class="tio-clear"></i>
@@ -148,11 +147,13 @@
                                 </label>
                             </div>
                             @endif
-
                             <div class="d-lg-none">
                                 <h6 class="font-semibold fs-15 mb-2">{{ translate('Sort_By') }}</h6>
                                 <form id="search-form" action="{{ route('products') }}" method="GET">
-                                    <input hidden name="data_from" value="{{$data['data_from']}}">
+                                    <input hidden name="offer_type" value="{{$data['offer_type']}}">
+                                    <input hidden id="data_from" value="{{ request('data_from') }}">
+                                    <input hidden id="category_id" value="{{ request('category_id') }}">
+                                    <input hidden id="brand_id" value="{{ request('brand_id') }}">
                                     <select class="form-control product-list-filter-on-viewpage">
                                         <option value="latest">{{translate('latest')}}</option>
                                         <option
@@ -203,7 +204,7 @@
                                             <div class="card-header flex-between">
                                                 <div>
                                                     <label class="for-hover-label cursor-pointer get-view-by-onclick"
-                                                           data-link="{{ route('products',['category_id'=> $category['id'],'data_from'=>'category','page'=>1]) }}">
+                                                           data-link="{{ route('products',['category_id'=> $category['id'],'data_from'=>'category', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '', 'page'=>1]) }}">
                                                         {{$category['name']}}
                                                     </label>
                                                 </div>
@@ -223,7 +224,7 @@
                                                         <div class="for-hover-label card-header flex-between">
                                                             <div>
                                                                 <label class="cursor-pointer get-view-by-onclick"
-                                                                       data-link="{{ route('products',['sub_category_id'=> $child['id'],'data_from'=>'category','page'=>1]) }}">
+                                                                       data-link="{{ route('products',['sub_category_id'=> $child['id'],'data_from'=>'category', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '','page'=>1]) }}">
                                                                     {{$child['name']}}
                                                                 </label>
                                                             </div>
@@ -278,7 +279,7 @@
                                                 class="brand mt-2 p-0 for-brand-hover {{Session::get('direction') === "rtl" ? 'mr-2' : ''}}"
                                                 id="brand">
                                                 <li class="flex-between get-view-by-onclick cursor-pointer"
-                                                    data-link="{{ route('products',['brand_id'=> $brand['id'],'data_from'=>'brand','page'=>1]) }}">
+                                                    data-link="{{ route('products',['brand_id'=> $brand['id'],'data_from'=>'brand', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '', 'page'=>1]) }}">
                                                     <div class="text-start">
                                                         {{ $brand['name'] }}
                                                     </div>
@@ -315,7 +316,7 @@
                                             <ul class="brand mt-2 p-0 for-brand-hover {{Session::get('direction') === "rtl" ? 'mr-2' : ''}}"
                                                  id="brand">
                                                 <li class="flex-between get-view-by-onclick cursor-pointer pe-2"
-                                                    data-link="{{ route('products',['publishing_house_id'=> $publishingHouseItem['id'], 'product_type' => 'digital', 'page'=>1]) }}">
+                                                    data-link="{{ route('products',['publishing_house_id'=> $publishingHouseItem['id'], 'product_type' => 'digital', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '', 'page'=>1]) }}">
                                                     <div class="text-start">
                                                         {{ $publishingHouseItem['name'] }}
                                                     </div>
@@ -354,7 +355,7 @@
                                             <ul class="brand mt-2 p-0 for-brand-hover {{Session::get('direction') === "rtl" ? 'mr-2' : ''}}"
                                                  id="brand">
                                                 <li class="flex-between get-view-by-onclick cursor-pointer pe-2"
-                                                    data-link="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}">
+                                                    data-link="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital','offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '', 'page' => 1]) }}">
                                                     <div class="text-start">
                                                         {{ $productAuthor['name'] }}
                                                     </div>
@@ -378,18 +379,19 @@
             </aside>
 
             <section class="col-lg-9">
-                <div class="row" id="ajax-products">
+                <div class="row" id="ajax-products-view">
                     @include('web-views.products._ajax-products',['products'=>$products,'decimal_point_settings'=>$decimal_point_settings])
                 </div>
             </section>
         </div>
     </div>
-
     <span id="products-search-data-backup"
+          data-page="{{ request('page') ?? 1 }}"
           data-url="{{ route('products') }}"
           data-brand="{{ $data['brand_id'] ?? '' }}"
           data-category="{{ $data['category_id'] ?? '' }}"
           data-name="{{ $data['name'] }}"
+          data-offer-type="{{ $data['offer_type'] }}"
           data-from="{{ $data['data_from'] ?? $data['product_type'] }}"
           data-sort="{{ $data['sort_by'] }}"
           data-product-type="{{ $data['product_type'] }}"
@@ -398,6 +400,7 @@
           data-message="{{ translate('items_found') }}"
           data-publishing-house-id="{{ request('publishing_house_id') }}"
           data-author-id="{{ request('author_id') }}"
+          data-offer="{{ request('offer_type') ?? '' }}"
     ></span>
 
 @endsection

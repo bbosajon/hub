@@ -7,6 +7,8 @@ let productListPageData = {
     brand_id: productListPageBackup.data('brand'),
     category_id: productListPageBackup.data('category'),
     data_from: productListPageBackup.data('from'),
+    offer_type: productListPageBackup.data('offer'),
+    product_check: productListPageBackup.data('product-check'),
     min_price: productListPageBackup.data('min-price'),
     max_price: productListPageBackup.data('max-price'),
     sort_by: productListPageBackup.data('sort_by'),
@@ -15,13 +17,11 @@ let productListPageData = {
     author_id: productListPageBackup.data('author-id'),
     publishing_house_id: productListPageBackup.data('publishing-house-id'),
 };
-
 function getProductListFilterRender() {
     const baseUrl = productListPageBackup.data('url');
     const queryParams = $.param(productListPageData);
     const newUrl = baseUrl + '?' + queryParams;
     history.pushState(null, null, newUrl);
-
     $.get({
         url: productListPageBackup.data('url'),
         data: productListPageData,
@@ -30,7 +30,8 @@ function getProductListFilterRender() {
             $('#loading').show();
         },
         success: function (response) {
-            $('#ajax-products').html(response.view);
+            console.log(response)
+            $('#ajax-products-view').html(response.view);
             $(".view-page-item-count").html(response.total_product);
             renderQuickViewFunction()
         },
@@ -42,17 +43,20 @@ function getProductListFilterRender() {
 
 $('.product-list-filter-on-viewpage').on('change', function (){
     productListPageData.sort_by = $(this).val();
+    productListPageData.data_from = $('#data_from').val();
+    productListPageData.category_id = $('#category_id').val();
+    productListPageData.brand_id = $('#brand_id').val();
     getProductListFilterRender();
 })
 
 $('.filter-on-product-filter-change').on('change', function () {
     productListPageData.data_from = $(this).val();
+    productListPageData.offer_type = $('#clearance_sale').val();
     getProductListFilterRender();
 });
 
 $('.filter-on-product-type-change').on('change', function () {
     productListPageData.product_type = $(this).val();
-    productListPageData.data_from = $('.filter-on-product-filter-change').val();
     $('.current-product-type').html($('.current-product-type').data($(this).val()));
     listPageProductTypeCheck();
     getProductListFilterRender();

@@ -15,6 +15,9 @@ if (!function_exists('getStorageImages')) {
     function getStorageImages($path, $type = null, $source = null): string
     {
         if ($source && base_path($source)) {
+            if ($type == 'payment-banner' && DOMAIN_POINTED_DIRECTORY == 'public') {
+                return asset(str_replace('app/public/', '', $source));
+            }
             return (!empty($path) && $path['status'] == 200) ? $path['path'] : dynamicAsset($source);
         }
         if ($source && file_exists($source)) {

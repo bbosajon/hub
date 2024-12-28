@@ -103,6 +103,12 @@ class ConfigController extends Controller
             'maintenance_type_and_duration' => getWebConfig(name: 'maintenance_duration_setup') ?? [],
         ];
 
+        $themeComfortablePanelVersion = '';
+        if (is_file(base_path('resources/themes/' . theme_root_path() . '/public/addon/theme_routes.php'))) {
+            $themeRoutes = include(base_path('resources/themes/' . theme_root_path() . '/public/addon/theme_routes.php'));
+            $themeComfortablePanelVersion = $themeRoutes['comfortable_panel_version'] ?? '';
+        }
+
         $systemColors = getWebConfig('colors');
         return response()->json([
             'primary_color' => $systemColors['primary'],
@@ -168,7 +174,7 @@ class ConfigController extends Controller
             'forgot_password_verification' => getWebConfig(name: 'forgot_password_verification'),
             'announcement' => getWebConfig(name: 'announcement'),
             'pixel_analytics' => getWebConfig(name: 'pixel_analytics'),
-            'software_version' => env('SOFTWARE_VERSION'),
+            'software_version' => SOFTWARE_VERSION,
             'decimal_point_settings' => (int)getWebConfig(name: 'decimal_point_settings'),
             'inhouse_selected_shipping_type' => $shippingType,
             'billing_input_by_customer' => (int)getWebConfig(name: 'billing_input_by_customer'),
@@ -182,6 +188,7 @@ class ConfigController extends Controller
             'payment_method_image_path' => dynamicStorage(path: 'storage/app/public/payment_modules/gateway_image'),
             'ref_earning_status' => getWebConfig(name: 'ref_earning_status') ?? 0,
             'active_theme' => theme_root_path(),
+            'theme_comfortable_panel_version' => $themeComfortablePanelVersion,
             'popular_tags' => $this->cacheTagTable(),
             'guest_checkout' => (int)getWebConfig(name: 'guest_checkout'),
             'upload_picture_on_delivery' => getWebConfig(name: 'upload_picture_on_delivery'),

@@ -54,7 +54,9 @@ class CartController extends Controller
         $discountedUnitPrice = 0;
         $color_name = '';
         $requestQuantity = $request['quantity'];
-        $product = Product::with(['digitalVariation'])->where(['id' => $request['id']])->first();
+        $product = Product::with(['digitalVariation', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }])->where(['id' => $request['id']])->first();
         $productVariationCode = $request['product_variation_code'];
 
         if ($request->has('color')) {
@@ -72,7 +74,7 @@ class CartController extends Controller
         $requestQuantity = $productVariationCode != $string ? $product['minimum_order_qty'] : $request['quantity'];
         $inCartExistStatus = 0;
         $inCartExistKey = null;
-        $getCartList = CartManager::get_cart();
+        $getCartList = CartManager::getCartListQuery();
         foreach ($getCartList as $cartItem) {
             if ($cartItem['product_id'] == $product['id'] && $cartItem['variant'] == $string) {
                 $inCartExistStatus = 1;
@@ -93,7 +95,7 @@ class CartController extends Controller
                 if (json_decode($product->variation)[$i]->type == $string) {
                     $tax = $product->tax_model == 'exclude' ? Helpers::tax_calculation(product: $product, price: json_decode($product->variation)[$i]->price, tax: $product['tax'], tax_type: $product['tax_type']) : 0;
                     $update_tax = $tax * $requestQuantity;
-                    $discount = Helpers::getProductDiscount($product, json_decode($product->variation)[$i]->price);
+                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: json_decode($product->variation)[$i]->price);
                     $price = json_decode($product->variation)[$i]->price - $discount + $tax;
                     $discountedUnitPrice = json_decode($product->variation)[$i]->price - $discount;
                     $unit_price = json_decode($product->variation)[$i]->price;
@@ -103,7 +105,7 @@ class CartController extends Controller
         } else {
             $tax = $product->tax_model == 'exclude' ? Helpers::tax_calculation(product: $product, price: $product->unit_price, tax: $product['tax'], tax_type: $product['tax_type']) : 0;
             $update_tax = $tax * $requestQuantity;
-            $discount = Helpers::getProductDiscount($product, $product->unit_price);
+            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $product->unit_price);
             $price = $product->unit_price - $discount + $tax;
             $discountedUnitPrice = $product->unit_price - $discount;
             $unit_price = $product->unit_price;
@@ -114,7 +116,7 @@ class CartController extends Controller
         if ($product['product_type'] == 'digital' && $digitalVariation) {
             $tax = $product['tax_model'] == 'exclude' ? Helpers::tax_calculation(product: $product, price: $digitalVariation['price'], tax: $product['tax'], tax_type: $product['tax_type']) : 0;
             $update_tax = $tax * $requestQuantity;
-            $discount = Helpers::getProductDiscount($product, $digitalVariation['price']);
+            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $digitalVariation['price']);
             $price = $digitalVariation['price'] - $discount + $tax;
             $discountedUnitPrice = $digitalVariation['price'] - $discount;
             $unit_price = $digitalVariation['price'];
@@ -132,9 +134,10 @@ class CartController extends Controller
         if (theme_root_path() == 'theme_fashion') {
             $deliveryInfo = ProductManager::get_products_delivery_charge($product, $requestQuantity);
             $stock_limit = BusinessSetting::where('type', 'stock_limit')->first()->value;
-            if ($request->has('color')) {
-                $color_name = Color::where(['code' => $request->color])->first()->name;
-            }
+        }
+
+        if ($request->has('color')) {
+            $color_name = Color::where(['code' => $request->color])->first()->name;
         }
 
         $restockRequestStatus = 0;
@@ -146,9 +149,12 @@ class CartController extends Controller
             ])->count() > 0);
         }
 
+        $discountType = getProductPriceByType(product: $product, type: 'discount_type', result: 'string');
+
         return [
             'price' => webCurrencyConverter($price * $requestQuantity),
-            'discount' => webCurrencyConverter($discount),
+            'discount' => $discountType == 'flat' ? webCurrencyConverter($discount) : getProductPriceByType(product: $product, type: 'discount', result: 'value').'%',
+            'discount_type' => $discountType,
             'discount_amount' => $discount,
             'tax' => $product['tax_model'] == 'exclude' ? webCurrencyConverter($tax) : 'incl.',
             'update_tax' => $product['tax_model'] == 'exclude' ? webCurrencyConverter($update_tax) : 'incl.', // for others theme
@@ -258,7 +264,7 @@ class CartController extends Controller
     {
         $sub_total = 0;
         $response = CartManager::update_cart_qty($request);
-        $cart = CartManager::get_cart();
+        $cart = CartManager::getCartListQuery();
         session()->forget('coupon_code');
         session()->forget('coupon_type');
         session()->forget('coupon_bearer');
@@ -293,7 +299,7 @@ class CartController extends Controller
             ]);
         }
         /** for default theme nav cart ,showing free delivery amount */
-        $free_delivery_status = OrderManager::free_delivery_order_amount($cart[0]->cart_group_id);
+        $free_delivery_status = OrderManager::getFreeDeliveryOrderAmountArray($cart[0]->cart_group_id);
 
         return response()->json([
             'status' => $response['status'],

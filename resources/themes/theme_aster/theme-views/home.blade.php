@@ -6,15 +6,12 @@
     <meta property="og:title" content="Welcome To {{$web_config['company_name']}} Home"/>
     <meta property="og:url" content="{{env('APP_URL')}}">
     <meta property="og:description" content="{{ substr(strip_tags(str_replace('&nbsp;', ' ', $web_config['about']->value)),0,160) }}">
+    <meta name="description" content="{{ substr(strip_tags(str_replace('&nbsp;', ' ', $web_config['about']->value)),0,160) }}">
 
     <meta property="twitter:card" content="{{$web_config['web_logo']['path']}}"/>
     <meta property="twitter:title" content="Welcome To {{$web_config['company_name']}} Home"/>
     <meta property="twitter:url" content="{{env('APP_URL')}}">
-	<meta name="google-adsense-account" content="ca-pub-3425835954136330">
     <meta property="twitter:description" content="{{ substr(strip_tags(str_replace('&nbsp;', ' ', $web_config['about']->value)),0,160) }}">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3425835954136330"
-     crossorigin="anonymous"></script>
-
 @endpush
 
 @section('content')
@@ -26,6 +23,8 @@
         @endif
 
         @include('theme-views.partials._find-what-you-need')
+
+        @include('theme-views.partials._clearance-sale', ['clearanceSaleProducts' => $clearanceSaleProducts])
 
         @if ($web_config['business_mode'] == 'multi' && count($topVendorsList) > 0 && $topVendorsListSectionShowingStatus)
             @include('theme-views.partials._top-stores')

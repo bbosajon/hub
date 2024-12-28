@@ -16,7 +16,6 @@ class CategoryController extends Controller
     {
         $categoriesID = [];
         if ($request->has('seller_id') && $request['seller_id'] != null) {
-            // Finding category ids
             $categoriesID = Product::active()
                 ->when($request->has('seller_id') && $request['seller_id'] != null && $request['seller_id'] != 0, function ($query) use ($request) {
                     return $query->where(['added_by' => 'seller'])

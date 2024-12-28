@@ -33,17 +33,17 @@
                                         </div>
 
                                         <div class="product__price d-flex flex-wrap align-items-end gap-2 mt-2">
-                                            @if($dealOfTheDay->product->discount > 0)
+                                            @if(getProductPriceByType(product: $dealOfTheDay->product, type: 'discount', result: 'value') > 0)
                                                 <del
                                                     class="product__old-price">{{webCurrencyConverter($dealOfTheDay->product->unit_price)}}</del>
                                             @endif
                                             <ins class="product__new-price">
-                                                {{ webCurrencyConverter($dealOfTheDay->product->unit_price-Helpers::getProductDiscount($dealOfTheDay->product,$dealOfTheDay->product->unit_price)) }}
+                                                {{ getProductPriceByType(product: $dealOfTheDay->product, type: 'discounted_unit_price', result: 'string') }}
                                             </ins>
                                         </div>
                                         <div class="mt-xl-2">
                                             <span class="product__save-amount">{{ translate('save') }}
-                                                {{ webCurrencyConverter(Helpers::getProductDiscount($dealOfTheDay->product,$dealOfTheDay->product->unit_price)) }}
+                                                {{ getProductPriceByType(product: $dealOfTheDay->product, type: 'discount', result: 'string') }}
                                             </span>
                                         </div>
                                     </div>
@@ -75,15 +75,10 @@
                                 <a href="{{route('product',$product->slug)}}"
                                    class="hover-zoom-in d-flex flex-column gap-2 align-items-center">
                                     <div class="position-relative">
-                                        @if($product->discount > 0)
+                                        @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                                             <span class="product__discount-badge">
                                                 <span>
-                                                    @if ($product->discount_type == 'percent')
-                                                        {{'-'.' '.round($product->discount,(!empty($decimal_point_settings) ? $decimal_point_settings: 0))}}
-                                                        {{translate('%')}}
-                                                    @elseif($product->discount_type =='flat')
-                                                        {{'-'.' '.webCurrencyConverter($product->discount)}}
-                                                    @endif
+                                                    -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                                                 </span>
                                             </span>
                                         @endif
@@ -91,13 +86,14 @@
                                              src="{{ getStorageImages(path:$product->thumbnail_full_url, type: 'product') }}">
                                     </div>
                                     <div class="product__price d-flex flex-wrap justify-content-center column-gap-2">
-                                        @if($product->discount > 0)
+                                        @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                                             <del class="product__old-price">
                                                 {{webCurrencyConverter($product->unit_price)}}
                                             </del>
                                         @endif
-                                        <ins
-                                            class="product__new-price">{{webCurrencyConverter($product->unit_price-(Helpers::getProductDiscount($product,$product->unit_price)))}}</ins>
+                                        <ins class="product__new-price">
+                                            {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
+                                        </ins>
                                     </div>
                                 </a>
                             @endforeach

@@ -201,8 +201,10 @@ $(document).ready(function () {
     });
 
     $(".category-wise-product-slider").each(function () {
+        let loopEnable = $(this).data('loop')?.toString() === 'true';
+
         $(this).owlCarousel({
-            loop: true,
+            loop: loopEnable,
             autoplay: true,
             margin: 20,
             nav: true,

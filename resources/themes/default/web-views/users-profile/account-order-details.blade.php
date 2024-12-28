@@ -203,14 +203,9 @@
                                                     <td class="for-tab-img">
                                                         <div class="media gap-3 align-items-center">
                                                             <div class="position-relative border rounded overflow-hidden">
-                                                                @if($product['discount'] > 0)
+                                                                @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
                                                                     <span class="for-discount-value px-1 direction-ltr">
-                                                                            @if ($product['discount_type'] == 'percent')
-                                                                            -{{round($product['discount'],(!empty($decimal_point_settings) ? $decimal_point_settings: 0))}}
-                                                                            %
-                                                                        @elseif($product['discount_type'] =='flat')
-                                                                            -{{ webCurrencyConverter(amount: $product['discount']) }}
-                                                                        @endif
+                                                                            -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
                                                                         </span>
                                                                 @endif
                                                                 <img class="d-block get-view-by-onclick aspect-1 object-cover"
@@ -318,7 +313,7 @@
                                                     </td>
                                                     <td class="text-right align-middle">
                                                         <span class="font-weight-bold amount">
-                                                            {{ webCurrencyConverter(amount: $detail->price) }}
+                                                            {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -469,7 +464,7 @@
                                             <tr>
                                                 <td>
                                                     <div class="text-start">
-                                                        <span class="product-qty ">{{translate('item')}}</span>
+                                                        <span class="product-qty ">{{translate('Total_Item')}}</span>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -480,6 +475,54 @@
                                                     </div>
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="text-start">
+                                                        <span class="product-qty ">{{translate('item_price')}}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="text-end">
+                                                        <span class="fs-15 font-semi-bold">
+                                                            {{ webCurrencyConverter(amount: $orderTotalPriceSummary['itemPrice']) }}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <div class="text-start">
+                                                        <span class="product-qty ">{{translate('item_discount')}}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="text-end">
+                                                        <span class="fs-15 font-semi-bold">
+                                                            {{ webCurrencyConverter(amount: $orderTotalPriceSummary['itemDiscount']) }}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            @if($order->order_type != 'default_type')
+                                                <tr>
+                                                    <td>
+                                                        <div class="text-start">
+                                                            <span class="product-qty">
+                                                                {{translate('extra_discount')}}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-end">
+                                                            <span class="fs-15 font-semi-bold">
+                                                                - {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['extraDiscount']) }}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endif
 
                                             <tr>
                                                 <td>
@@ -491,58 +534,6 @@
                                                     <div class="text-end">
                                                         <span class="fs-15 font-semi-bold">
                                                             {{ webCurrencyConverter(amount: $orderTotalPriceSummary['subTotal']) }}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <div class="text-start">
-                                                        <span class="product-qty">
-                                                            {{translate('tax_fee')}}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="text-end">
-                                                        <span class="fs-15 font-semi-bold">
-                                                            {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['taxTotal']) }}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @if($order->order_type == 'default_type' && $order?->is_shipping_free == 0)
-                                                <tr>
-                                                    <td>
-                                                        <div class="text-start">
-                                                            <span class="product-qty">
-                                                                {{translate('shipping_Fee')}}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="text-end">
-                                                            <span class="fs-15 font-semi-bold">
-                                                                {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['shippingTotal']) }}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endif
-
-                                            <tr>
-                                                <td>
-                                                    <div class="text-start">
-                                                        <span class="product-qty">
-                                                            {{translate('discount_on_product')}}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="text-end">
-                                                        <span class="fs-15 font-semi-bold">
-                                                            - {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['itemDiscount']) }}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -565,19 +556,36 @@
                                                 </td>
                                             </tr>
 
-                                            @if($order->order_type != 'default_type')
+                                            <tr>
+                                                <td>
+                                                    <div class="text-start">
+                                                        <span class="product-qty">
+                                                            {{translate('tax_fee')}}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="text-end">
+                                                        <span class="fs-15 font-semi-bold">
+                                                            {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['taxTotal']) }}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            @if($order->order_type == 'default_type' && $order?->is_shipping_free == 0)
                                                 <tr>
                                                     <td>
                                                         <div class="text-start">
                                                             <span class="product-qty">
-                                                                {{translate('extra_discount')}}
+                                                                {{translate('shipping_Fee')}}
                                                             </span>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div class="text-end">
                                                             <span class="fs-15 font-semi-bold">
-                                                                - {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['extraDiscount']) }}
+                                                                {{ webCurrencyConverter(amount:  $orderTotalPriceSummary['shippingTotal']) }}
                                                             </span>
                                                         </div>
                                                     </td>

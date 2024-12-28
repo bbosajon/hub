@@ -107,6 +107,6 @@
 @push('script')
     <script>
         'use strict';
-        getVariantPrice();
+        getVariantPrice(".add-to-cart-details-form");
     </script>
 @endpush

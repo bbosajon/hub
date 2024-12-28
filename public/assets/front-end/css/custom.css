@@ -498,7 +498,7 @@ span.badge-accent:hover {
 }
 
 [dir="ltr"] .ps-0 {
-    padding-left: 0; !important;
+    padding-left: 0 !important;
 }
 
 [dir="ltr"] .ps-1 {
@@ -1605,10 +1605,87 @@ body {
     display: flex;
     justify-content: center;
     gap: 1rem;
-    padding: .25rem;
 }
 
 .custom-disabled {
     opacity: .65;
     box-shadow: none;
+}
+
+.clearance-sale-title-bg {
+    background-size: contain;
+    background-repeat: no-repeat;
+    min-height: 80px;
+    width: 220px;
+    position: relative;
+}
+
+.clearance-sale-title-bg .title {
+    position: absolute;
+    bottom: .5rem;
+    color: #FFF;
+    left: 20px;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 21px;
+}
+
+.clearance-sale-title-bg .sub-title {
+    position: absolute;
+    bottom: 2.3rem;
+    color: #1455AC;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 19px;
+    left: 1.25rem;
+    text-align: center;
+    width: 100px;
+}
+
+[dir="rtl"] .clearance-sale-title-bg {
+    transform: scaleX(-1);
+}
+
+[dir="rtl"] .clearance-sale-title-bg .title,
+[dir="rtl"] .clearance-sale-title-bg .sub-title {
+    transform: scaleX(-1);
+}
+
+.fs-12 .discounted-unit-price,
+.fs-12 .product-total-unit-price {
+    font-size: 0.75rem !important;
+}
+
+.bg--light {
+    background-color: #f8f8fa;
+}
+[theme="dark"].bg--light {
+    background-color: #18181a;
+}
+
+.z-index-1{
+    z-index: -1;
+}
+
+.quantity-box-120 {
+    width: 120px;
+    min-width: 110px;
+}
+
+.clearance-sale-slider.owl-carousel .owl-stage{
+    display: flex;
+    height: 100%;
+}
+.clearance-sale-slider.owl-carousel.owl-drag .owl-item{
+    display: grid;
+    align-items: stretch;
+}
+
+.bg-count-light{
+    background: rgba(236, 241, 246, 0.50);
+}
+
+.bg-count-light:focus,
+.bg-count-light:hover {
+    filter: none !important;
 }

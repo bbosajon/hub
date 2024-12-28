@@ -24,7 +24,9 @@ class CategoryManager
     {
         $user = Helpers::getCustomerInformation($request);
         $id = '"' . $category_id . '"';
-        $products = Product::with(['flashDealProducts.flashDeal', 'rating', 'seller.shop', 'tags'])
+        $products = Product::with(['flashDealProducts.flashDeal', 'rating', 'seller.shop', 'tags', 'clearanceSale' => function ($query) {
+                return $query->active();
+            }])
             ->withCount(['reviews', 'wishList' => function ($query) use ($user) {
                 $query->where('customer_id', $user != 'offline' ? $user->id : '0');
             }])
@@ -71,7 +73,7 @@ class CategoryManager
 
     public static function getCategoriesWithCountingAndPriorityWiseSorting($dataLimit = null)
     {
-        $cacheKey = 'cache_main_categories_list_' . (getDefaultLanguage() ?? 'en');
+        $cacheKey = 'cache_main_categories_list_' . (getDefaultLanguage() ?? 'en').'_'.(request('offer_type') ?? 'default');
         $cacheKeys = Cache::get(CACHE_CONTAINER_FOR_LANGUAGE_WISE_CACHE_KEYS, []);
 
         if (!in_array($cacheKey, $cacheKeys)) {
@@ -81,16 +83,30 @@ class CategoryManager
 
         $categories = Cache::remember($cacheKey, CACHE_FOR_3_HOURS, function () {
             return Category::with(['product' => function ($query) {
-                return $query->active()->withCount(['orderDetails']);
+                return $query->active()->withCount(['orderDetails'])->with(['clearanceSale' => function ($query) {
+                    return $query->active();
+                }]);
             }])->withCount(['product' => function ($query) {
-                $query->active();
+                $query->active()->when(request('offer_type') == 'clearance_sale', function ($query) {
+                    return $query->whereHas('clearanceSale', function ($query) {
+                        return $query->active();
+                    });
+                });
             }])->with(['childes' => function ($query) {
                 $query->with(['childes' => function ($query) {
                     $query->withCount(['subSubCategoryProduct' => function ($query) {
-                        $query->active();
+                        $query->active()->when(request('offer_type') == 'clearance_sale', function ($query) {
+                            return $query->whereHas('clearanceSale', function ($query) {
+                                return $query->active();
+                            });
+                        });
                     }])->where('position', 2);
                 }])->withCount(['subCategoryProduct' => function ($query) {
-                    $query->active();
+                    $query->active()->when(request('offer_type') == 'clearance_sale', function ($query) {
+                        return $query->whereHas('clearanceSale', function ($query) {
+                            return $query->active();
+                        });
+                    });
                 }])->where('position', 1);
             }, 'childes.childes'])->where('position', 0)->get();
         });

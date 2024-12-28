@@ -18874,11 +18874,11 @@ body {
     /*border: 1px solid #E2F0FF;*/
 }
 
-.checkbox-alphanumeric::after,
-.checkbox-alphanumeric::before {
-    content: "";
-    display: table;
-}
+/*.checkbox-alphanumeric::after,*/
+/*.checkbox-alphanumeric::before {*/
+/*    content: "";*/
+/*    display: table;*/
+/*}*/
 
 .checkbox-alphanumeric::after {
     clear: both;
@@ -18945,11 +18945,11 @@ body {
 }
 
 /* CUSTOM COLOR INPUT */
-.checkbox-color::after,
-.checkbox-color::before {
-    content: "";
-    display: table;
-}
+/*.checkbox-color::after,*/
+/*.checkbox-color::before {*/
+/*    content: "";*/
+/*    display: table;*/
+/*}*/
 
 .checkbox-color::after {
     clear: both;
@@ -19338,4 +19338,67 @@ html[dir="rtl"] .badge-style {
     .maintenance-mode-container p.info {
         font-size: .85rem;
     }
+}
+
+.btn-clearance {
+    position: relative;
+    padding-right: 34px;
+    z-index: 1;
+}
+
+.btn-clearance:hover {
+    filter: none !important;
+}
+
+.btn-clearance::after {
+    position: absolute;
+    content: "";
+    right: -1px;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-top: 17px solid transparent;
+    border-right: 17px solid var(--web-primary);
+    border-bottom: 17px solid transparent;
+}
+
+@media (max-width: 767.98px) {
+    .btn-clearance::after {
+        display: none;
+    }
+}
+
+.top-n6 {
+    top: -6px;
+}
+
+.product-details-sticky {
+    position: fixed;
+    bottom: 0;
+    z-index: 9999;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 -10px 20px 0 rgba(0, 0, 0, 0.08);
+    border-radius: 20px 20px 0 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: all 0.3s;
+}
+
+.product-details-sticky.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.product-details-sticky-top {
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.overflow-y-hidden {
+    overflow-y: hidden !important;
 }

@@ -23,12 +23,12 @@
                     <div class="card-body">
                         <div class="row gy-2 align-items-center">
                             <div class="col-lg-4">
-                                <h3 class="mb-1">{{translate(str_replace(['-', '_', '/'],' ',$data['data_from']))}} {{translate('products')}}</h3>
+                                <h3 class="mb-1">{{translate(str_replace(['-', '_', '/'],' ',$data['offer_type']))}} {{translate('products')}}</h3>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb fs-12 mb-0">
                                         <li class="breadcrumb-item"><a href="#">{{ translate('home') }}</a></li>
                                         <li class="breadcrumb-item active"
-                                            aria-current="page">{{translate(str_replace(['-', '_', '/'],' ',$data['data_from']))}} {{translate('products')}} {{ isset($data['brand_name']) ? ' / '.$data['brand_name'] : ''}} {{ request('name') ? '('.request('name').')' : ''}}</li>
+                                            aria-current="page">{{translate(str_replace(['-', '_', '/'],' ',$data['offer_type']))}} {{translate('products')}} {{ isset($data['brand_name']) ? ' / '.$data['brand_name'] : ''}} {{ request('name') ? '('.request('name').')' : ''}}</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -49,6 +49,9 @@
                                                         data-bs-toggle="dropdown" aria-expanded="false">
                                                     {{translate('default')}}
                                                 </button>
+                                                <input hidden id="data_from" value="{{ request('data_from') }}">
+                                                <input hidden id="category_id" value="{{ request('category_id') }}">
+                                                <input hidden id="brand_id" value="{{ request('brand_id') }}">
                                                 <ul class="dropdown-menu dropdown-menu-end" id="sort-by-list">
                                                     <li class="link-hover-base product-list-filter-on-sort-by selected" data-value="latest">
                                                         {{translate('default')}}
@@ -199,7 +202,7 @@
                                         @foreach($categories as $category)
                                             <li>
                                                 <div class="d-flex justify-content-between">
-                                                    <a href="{{route('products',['category_id'=> $category['id'],'data_from'=>'category','page'=>1])}}">{{$category['name']}}</a>
+                                                    <a href="{{route('products',['category_id'=> $category['id'],'data_from'=>'category', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '','page'=>1])}}">{{$category['name']}}</a>
                                                     @if ($category->childes->count() > 0)
                                                         <span>
                                                     <i class="bi bi-chevron-right"></i>
@@ -211,7 +214,7 @@
                                                         @foreach($category->childes as $child)
                                                             <li>
                                                                 <div class="d-flex justify-content-between">
-                                                                    <a href="{{route('products',['sub_category_id'=> $child['id'],'data_from'=>'category','page'=>1])}}">{{$child['name']}}</a>
+                                                                    <a href="{{route('products',['sub_category_id'=> $child['id'],'data_from'=>'category', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '','page'=>1])}}">{{$child['name']}}</a>
                                                                     @if ($child->childes->count() > 0)
                                                                         <span>
                                                             <i class="bi bi-chevron-right"></i>
@@ -224,7 +227,7 @@
                                                                         @foreach($child->childes as $ch)
                                                                             <li>
                                                                                 <label class="custom-checkbox">
-                                                                                    <a href="{{route('products',['sub_sub_category_id'=> $ch['id'],'data_from'=>'category','page'=>1])}}">{{$ch['name']}}</a>
+                                                                                    <a href="{{route('products',['sub_sub_category_id'=> $ch['id'],'data_from'=>'category', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '','page'=>1])}}">{{$ch['name']}}</a>
                                                                                 </label>
                                                                             </li>
                                                                         @endforeach
@@ -257,7 +260,7 @@
                                                 <li class="overflow-hidden w-100">
                                                     <div class="flex-between-gap-3 align-items-center">
                                                         <label class="custom-checkbox w-75">
-                                                            <a class="text-truncate" href="{{route('products',['brand_id'=> $brand['id'],'data_from'=>'brand','page'=>1])}}">{{ $brand['name'] }}</a>
+                                                            <a class="text-truncate" href="{{route('products',['brand_id'=> $brand['id'],'data_from'=>'brand','offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '','page'=>1])}}">{{ $brand['name'] }}</a>
                                                         </label>
                                                         <span
                                                             class="badge bg-badge rounded-pill text-dark ms-auto">{{ $brand['brand_products_count'] }}</span>
@@ -287,7 +290,7 @@
                                                 <li>
                                                     <div class="flex-between-gap-3 align-items-center">
                                                         <label class="custom-checkbox">
-                                                            <a href="{{ route('products',['publishing_house_id'=> $publishingHouseItem['id'], 'product_type' => 'digital', 'page'=>1]) }}">
+                                                            <a href="{{ route('products',['publishing_house_id'=> $publishingHouseItem['id'], 'product_type' => 'digital', 'offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '', 'page'=>1]) }}">
                                                                 {{ $publishingHouseItem['name'] }}
                                                             </a>
                                                         </label>
@@ -323,7 +326,7 @@
                                                 <li>
                                                     <div class="flex-between-gap-3 align-items-center">
                                                         <label class="custom-checkbox">
-                                                            <a href="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}">
+                                                            <a href="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital','offer_type' => isset($data['offer_type']) ? $data['offer_type'] : '', 'page' => 1]) }}">
                                                                 {{ $productAuthor['name'] }}
                                                             </a>
                                                         </label>
@@ -390,13 +393,15 @@
     </main>
     <span id="filter-url" data-url="{{url('/').'/products'}}"></span>
     <span id="product-view-style-url" data-url="{{route('product_view_style')}}"></span>
-    <input type="hidden" value="{{$data['id']}}" id="data_id">
-    <input type="hidden" value="{{$data['name']}}" id="data_name">
-    <input type="hidden" value="{{$data['data_from']}}" id="data_from">
-    <input type="hidden" value="{{$data['min_price']}}" id="data_min_price">
-    <input type="hidden" value="{{$data['max_price']}}" id="data_max_price">
+    <input type="hidden" value="{{ $data['id'] }}" id="data_id">
+    <input type="hidden" value="{{ $data['name'] }}" id="data_name">
+    <input type="hidden" value="{{ $data['data_from'] }}" id="data_from">
+    <input type="hidden" value="{{ $data['offer_type'] }}" id="offer_type">
+    <input type="hidden" value="{{ $data['min_price'] }}" id="data_min_price">
+    <input type="hidden" value="{{ $data['max_price'] }}" id="data_max_price">
 
     <span id="products-search-data-backup"
+          data-page="{{ request('page') ?? 1 }}"
           data-url="{{ route('products') }}"
           data-id="{{ $data['id'] }}"
           data-brand="{{ $data['brand_id'] ?? '' }}"
@@ -410,6 +415,7 @@
           data-message="{{ translate('items_found') }}"
           data-publishing-house-id="{{ request('publishing_house_id') }}"
           data-author-id="{{ request('author_id') }}"
+          data-offer="{{ request('offer_type') ?? '' }}"
     ></span>
 
 @endsection

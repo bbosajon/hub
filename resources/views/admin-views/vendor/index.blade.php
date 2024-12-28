@@ -100,15 +100,15 @@
                                         {!! $seller->status=='approved'?'<label class="badge badge-success">'.translate('active').'</label>':'<label class="badge badge-danger">'.translate('inactive').'</label>' !!}
                                     </td>
                                     <td class="text-center">
-                                        <a href="{{route('admin.vendors.product-list',[$seller['id']])}}"
+                                        <a href="{{ route('admin.vendors.view', ['id'=>$seller['id'], 'tab'=>'product']) }}"
                                            class="btn text--primary bg-soft--primary font-weight-bold px-3 py-1 mb-0 fz-12">
                                             {{$seller->product->count()}}
                                         </a>
                                     </td>
                                     <td class="text-center">
-                                        <a href="{{route('admin.vendors.order-list',[$seller['id']])}}"
+                                        <a href="{{ route('admin.vendors.view',['id'=>$seller['id'], 'tab'=>'order']) }}"
                                             class="btn text-info bg-soft-info font-weight-bold px-3 py-1 fz-12 mb-0">
-                                            {{$seller->orders->where('seller_is','seller')->where('order_type','default_type')->count()}}
+                                            {{ $seller->orders->where('seller_is', 'seller')->where('order_type', 'default_type')->count() }}
                                         </a>
                                     </td>
                                     <td>

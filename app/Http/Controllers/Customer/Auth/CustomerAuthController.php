@@ -117,6 +117,7 @@ class CustomerAuthController extends Controller
             }
         } else {
             $response = $this->customerAuthService->sendCustomerPhoneVerificationToken($phoneNumber, $token);
+            $response = $response['status'];
             if (env('APP_MODE') == 'dev') {
                 $response = 'success';
             }

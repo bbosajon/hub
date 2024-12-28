@@ -70,7 +70,7 @@ class Helpers
 
         if (isset($coupon)) {
             $total = 0;
-            foreach (CartManager::get_cart(groupId: CartManager::get_cart_group_ids(request: $request)) as $cart) {
+            foreach (CartManager::getCartListQuery(groupId: CartManager::get_cart_group_ids(request: $request)) as $cart) {
                 $product_subtotal = $cart['price'] * $cart['quantity'];
                 $total += $product_subtotal;
             }
@@ -720,7 +720,7 @@ class Helpers
 
     public static function sales_commission_before_order($cart_group_id, $coupon_discount)
     {
-        $carts = CartManager::get_cart(groupId: $cart_group_id);
+        $carts = CartManager::getCartListQuery(groupId: $cart_group_id);
         $cart_summery = OrderManager::order_summary_before_place_order($carts, $coupon_discount);
         return self::seller_sales_commission($carts[0]['seller_is'], $carts[0]['seller_id'], $cart_summery['order_total']);
     }
@@ -863,13 +863,6 @@ if (!function_exists('get_shop_name')) {
     {
         $shop = Shop::where(['seller_id' => $seller_id])->first();
         return $shop ? $shop->name : null;
-    }
-}
-
-if (!function_exists('get_color_name')) {
-    function get_color_name($code)
-    {
-        return Color::where(['code' => $code])->first()->name;
     }
 }
 

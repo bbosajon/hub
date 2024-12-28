@@ -9,7 +9,7 @@
             {{ $product['name'] }}
         </div>
         <div class="pos-product-item_price">
-            {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['unit_price'] - getProductDiscount(product: $product, price: $product['unit_price'])), currencyCode: getCurrencyCode())  }}
+            {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string', price: $product['unit_price'], from: 'panel') }}
         </div>
         <div class="pos-product-item_hover-content">
             <div class="d-flex flex-wrap gap-2">

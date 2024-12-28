@@ -103,6 +103,14 @@ function ajaxFormRenderChattingMessages() {
                 containerImage.innerHTML = "";
                 selectedFiles = [];
                 selectedImages = [];
+
+                if (response.errors) {
+                    for (let index = 0; index < response.errors.length; index++) {
+                        toastr.error(response.errors[index].message);
+                    }
+                } else if (response.error) {
+                    toastr.error(response.error);
+                }
             }, complete: function () {
                 $('.circle-progress').hide()
                 $("#msgSendBtn").removeAttr('disabled');

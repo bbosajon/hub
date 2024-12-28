@@ -106,7 +106,7 @@ class CustomerController extends BaseController
             dataLimit: getWebConfig(name: WebConfigKey::PAGINATION_LIMIT),
             appends: $request->all(),
         );
-        $totalCustomers = $this->customerRepo->getListWhere(dataLimit: 'all')->count();
+        $totalCustomers = $this->customerRepo->getListWhereBetween(filters: ['avoid_walking_customer' => 1], dataLimit: 'all')->count();
         return view(Customer::LIST[VIEW], [
             'customers' => $customers,
             'totalCustomers' => $totalCustomers,

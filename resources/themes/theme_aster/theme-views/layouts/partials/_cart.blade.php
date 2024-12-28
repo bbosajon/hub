@@ -7,7 +7,7 @@
 <div class="dropdown">
     <a href="{{route('shop-cart')}}" class="position-relative" data-bs-toggle="dropdown" data-bs-auto-close="outside"
        aria-expanded="false">
-        @php($cart=CartManager::get_cart())
+        @php($cart=CartManager::getCartListQuery())
         <i class="bi bi-bag fs-18"></i>
         <span class="count">{{$cart->count()}}</span>
     </a>

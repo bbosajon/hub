@@ -567,7 +567,6 @@ function getProductAddRequirementsCheck() {
                         $("#loading").fadeOut();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.error("Error:", textStatus, errorThrown);
                         $("#loading").fadeOut();
                     },
                 });

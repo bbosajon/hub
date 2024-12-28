@@ -286,10 +286,10 @@ class DeliveryManController extends Controller
                         });
                     });
             })
-            ->when(!empty($request->status), function ($query) use ($request) {
+            ->when(isset($request['status']) && !empty($request['status']), function ($query) use ($request) {
                 $query->where('order_status', $request['status']);
             })
-            ->when(!empty($request->is_pause), function ($query) use ($request) {
+            ->when(isset($request['is_pause']) && in_array($request['is_pause'], [0, 1]), function ($query) use ($request) {
                 $query->where('is_pause', $request['is_pause']);
             })
             ->when(!empty($request->start_date) && !empty($request->end_date), function ($query) use ($request) {
@@ -366,7 +366,7 @@ class DeliveryManController extends Controller
         return response()->json(['message' => 'successfully updated!'], 200);
     }
 
-    public function delivery_wise_earned(Request $request)
+    public function delivery_wise_earned(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'offset' => 'required',
@@ -375,7 +375,7 @@ class DeliveryManController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 403);
         }
-        $dateType = $request->type;
+        $dateType = $request['type'] ?? "all";
         $delivery_man = $request->delivery_man;
 
         $order = Order::with(['seller.shop', 'customer'])->where(['delivery_man_id' => $delivery_man->id, 'payment_status' => 'paid']);

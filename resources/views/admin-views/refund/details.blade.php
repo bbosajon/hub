@@ -1,4 +1,4 @@
-@extends('layouts.back-end.app')
+z@extends('layouts.back-end.app')
 
 @section('title', translate('refund_details'))
 
@@ -380,7 +380,7 @@
                         <div class="text-center">
                             <img class="mb-3" src="{{dynamicAsset(path: 'public/assets/back-end/img/refund-approve.png')}}" alt="{{translate('refund_approve')}}">
                             <h4 class="mb-4 mx-auto max-w-283">
-                                {{translate('once_you_refund_that_refund_request').','.translate('then_you_would_not_able_change_any_status')}}
+                                {{ translate('once_you_refund_that_refund_request').', '.translate('then_you_would_not_able_change_any_status') }}
                             </h4>
                         </div>
                         <div class="form-group">

@@ -1,6 +1,6 @@
 'use strict';
 $(document).ready(function () {
-    getVariantPrice();
+    getVariantPrice(".add-to-cart-details-form");
     function stockCheckQuickView() {
         let productQty = $('.product_quantity__qty');
         let minValue = parseInt(productQty.attr('min'));
@@ -26,13 +26,13 @@ $(document).ready(function () {
         if (valueCurrent > maxValue) {
             productQty.val(maxValue);
         }
-        getVariantPrice();
+        getVariantPrice(".add-to-cart-details-form");
     }
 
-    $('#add-to-cart-form input').on('change', function () {
+    $('.add-to-cart-details-form input').on('change', function () {
         stockCheckQuickView();
     });
-    $('#add-to-cart-form').on('submit', function (e) {
+    $('.add-to-cart-details-form').on('submit', function (e) {
         e.preventDefault();
     });
     $('.single-quantity-plus').on('click', function () {

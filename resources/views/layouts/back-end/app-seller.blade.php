@@ -85,6 +85,8 @@
     <span id="message-you-will-not-be-able-to-revert-this"
           data-text="{{ translate('you_will_not_be_able_to_revert_this') }}"></span>
     <span id="getChattingNewNotificationCheckRoute" data-route="{{ route('vendor.messages.new-notification') }}"></span>
+    <span id="get-search-vendor-product-for-clearnace-route" data-action="{{route('vendor.clearance-sale.search-product-for-clearance')}}"></span>
+    <span id="get-multiple-clearance-product-details-route" data-action="{{route('vendor.clearance-sale.multiple-clearance-product-details')}}"></span>
 
     <span id="get-stock-limit-status" data-action="{{route('vendor.products.stock-limit-status')}}"></span>
     <span id="get-product-stock-limit-title" data-title="{{translate('warning')}}"></span>
@@ -99,6 +101,9 @@
     >
     </span>
     <span id="route-for-real-time-activities" data-route="{{ route('vendor.dashboard.real-time-activities') }}"></span>
+    <span id="get-confirm-and-cancel-button-text-for-delete-all-products" data-sure ="{{translate('are_you_sure').'?'}}"
+          data-text="{{translate('want_to_clear_all_stock_clearance_products?').'!'}}"
+          data-confirm="{{translate('yes_delete_it')}}" data-cancel="{{translate('cancel')}}"></span>
 
     <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/vendor.min.js') }}"></script>
     <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/theme.min.js') }}"></script>

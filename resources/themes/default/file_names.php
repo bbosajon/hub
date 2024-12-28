@@ -74,4 +74,5 @@ return [
     'digital_product_download' => 'web-views.order.digital-product-download',
     'robots_meta_content_partials' => 'web-views.partials._robotsMetaContentData',
     'product_seo_meta_content_partials' => 'web-views.partials._productSEOMetaContentData',
+    'analytics_script_partials' => 'layouts.front-end.partials._analytics-script',
 ];

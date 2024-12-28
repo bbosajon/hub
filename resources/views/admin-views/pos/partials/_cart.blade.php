@@ -65,7 +65,7 @@
 
                 <div class="d-flex gap-2 justify-content-between">
                     <dt class="title-color text-capitalize font-weight-normal">{{ translate('product_Discount') }} :</dt>
-                    <dd>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount:round($cartItems['discountOnProduct'],2)), currencyCode: getCurrencyCode()) }}</dd>
+                    <dd>{{setCurrencySymbol(amount: usdToDefaultCurrency(amount:round($cartItems['discountOnProduct'], 2)), currencyCode: getCurrencyCode()) }}</dd>
                 </div>
 
                 <div class="d-flex gap-2 justify-content-between">
@@ -74,7 +74,7 @@
                         <button id="extra_discount" class="btn btn-sm p-0" type="button" data-toggle="modal" data-target="#add-discount">
                             <i class="tio-edit"></i>
                         </button>
-                        {{setCurrencySymbol(amount: usdToDefaultCurrency(amount:$cartItems['extraDiscount']), currencyCode: getCurrencyCode())}}
+                        {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $cartItems['extraDiscount']), currencyCode: getCurrencyCode())}}
                     </dd>
                 </div>
 

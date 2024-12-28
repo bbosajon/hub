@@ -44,9 +44,10 @@ class CartService
                 }
             }
         } else {
-            $discount = $this->getDiscountAmount(price: $product['unit_price'], discount: $product['discount'], discountType: $product['discount_type']);
+            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $product['unit_price'], from: 'panel');
             $tax = $product->tax_model == 'exclude' ? $this->getTaxAmount(price: $product->unit_price, tax: $product['tax']) : 0;
             $price = $product['unit_price'] - $discount + $tax;
+            $unitPrice = $product['unit_price'];
             $quantity = $product['current_stock'];
         }
 
@@ -60,17 +61,15 @@ class CartService
         $inCartData = null;
 
         if ($product['product_type'] == 'digital' && $request->has('variant_key')) {
-            $discount = $this->getDiscountAmount(price: $product['unit_price'], discount: $product['discount'], discountType: $product['discount_type']);
+            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $product['unit_price'], from: 'panel');
             $tax = $product['tax_model'] == 'exclude' ? $this->getTaxAmount(price: $product['unit_price'], tax: $product['tax']) : 0;
-            $price = 0;
-            $discountedUnitPrice = 0;
-            $unit_price = 0;
             $quantity = $product['current_stock'];
             foreach ($product['digitalVariation'] as $variant) {
                 if ($variant['variant_key'] == $request->variant_key) {
-                    $discount = $this->getDiscountAmount(price: $variant['price'], discount: $product['discount'], discountType: $product['discount_type']);
+                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variant['price'], from: 'panel');
                     $tax = $product['tax_model'] == 'exclude' ? $this->getTaxAmount(price: $variant['price'], tax: $product['tax']) : 0;
                     $price = $variant['price'] - $discount + $tax;
+                    $unitPrice = $variant['price'];
                     $variation = $variant['variant_key'];
                 }
             }
@@ -79,32 +78,34 @@ class CartService
         foreach ($cartData as $cart) {
             if (is_array($cart) && $cart['id'] == $product['id'] && $cart['variant'] == $variation) {
                 $inCartStatus = 1;
-                if ($product['discount_type'] == 'percent') {
-                    $discount = ($cart['price'] * $product['discount']) / 100;
-                } elseif ($product['discount_type'] == 'flat') {
-                    $discount = $product['discount'];
-                }
-
+                $cartDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $cart['price'], from: 'panel');
+                $price = ($cart['price'] - $cartDiscount + $tax);
                 $inCartData = [
-                    'price' => usdToDefaultCurrency(amount: ($cart['price'] - $discount + $tax) * $cart['quantity']),
-                    'discount' => usdToDefaultCurrency($discount),
+                    'price' => usdToDefaultCurrency(amount: $price * $cart['quantity']),
+                    'discount' => usdToDefaultCurrency($cartDiscount),
                     'tax' => $product->tax_model == 'exclude' ? setCurrencySymbol(amount: usdToDefaultCurrency(amount: $tax * $cart['quantity']), currencyCode: getCurrencyCode()) : 'incl.',
                     'quantity' => (int)$cart['quantity'],
                     'variant' => $cart['variant'],
                     'id' => $cart['id'],
                 ];
-                $requestQuantity = (int)$request['quantity_in_cart'];
+                $requestQuantity = (int)($request['quantity_in_cart'] ?? $cart['quantity']);
             }
         }
+        $discountType = getProductPriceByType(product: $product, type: 'discount_type', result: 'string');
 
         return [
-            'price' => usdToDefaultCurrency(amount: $price * $requestQuantity),
+            'price' => setCurrencySymbol(amount: usdToDefaultCurrency(amount: $price * $requestQuantity)),
             'discount' => usdToDefaultCurrency($discount),
+            'discount_amount' => $discount,
+            'discount_type' => $discountType,
+            'discount_text' => $discountType == 'flat' ? translate('save') .' '. usdToDefaultCurrency($discount) : getProductPriceByType(product: $product, type: 'discount', result: 'value').'% '. translate('off'),
             'tax' => $product->tax_model == 'exclude' ? setCurrencySymbol(amount: usdToDefaultCurrency(amount: $tax * $requestQuantity), currencyCode: getCurrencyCode()) : 'incl.',
             'quantity' => $product['product_type'] == 'physical' ? $quantity : 100,
             'inCartStatus' => $inCartStatus,
             'inCartData' => $inCartData,
             'requestQuantity' => $requestQuantity,
+            'total_unit_price' => setCurrencySymbol(amount: usdToDefaultCurrency(amount: $unitPrice)),
+            'discounted_unit_price' => setCurrencySymbol(amount: usdToDefaultCurrency(amount: $unitPrice - $discount)),
         ];
     }
 
@@ -290,16 +291,19 @@ class CartService
 
     public function getCartSubtotalCalculation(object $product, array $cartItem, array $calculation): array
     {
-        $taxCalculate = $calculation['taxCalculate'] + ($this->getTaxAmount($cartItem['price'], $product['tax']) * $cartItem['quantity']);
-        $productSubtotal = (($cartItem['price'] - $cartItem['discount']) * $cartItem['quantity']);
+        $taxCalculate = $product['tax_model'] == 'include' ? 0 : $this->getTaxAmount($cartItem['price'], $product['tax']) * $cartItem['quantity'];
+        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $cartItem['price'], from: 'panel');
+        $productSubtotal = (($cartItem['price'] - $discount) * $cartItem['quantity']) - ($product['tax_model'] == 'include' ? $taxCalculate : 0);
         return [
-            'countItem' => $calculation['countItem'] + 1,
-            'taxCalculate' => $calculation['taxCalculate'] + $taxCalculate,
-            'totalTaxShow' => $calculation['totalTaxShow'] + $taxCalculate,
-            'totalTax' => $calculation['totalTax'] + $taxCalculate,
-            'productSubtotal' => $calculation['productSubtotal'] + $productSubtotal,
-            'subtotal' => $calculation['subtotal'] + $productSubtotal - ($cartItem['tax_model'] == 'include' ? $taxCalculate : 0),
-            'discountOnProduct' => $calculation['discountOnProduct'] + ($cartItem['discount'] * $cartItem['quantity']),
+            'countItem' => 1,
+            'totalQuantity' => $cartItem['quantity'],
+            'taxCalculate' => $taxCalculate,
+            'totalTaxShow' => $taxCalculate,
+            'totalTax' => $taxCalculate,
+            'totalIncludeTax' => $product['tax_model'] == 'include' ? $this->getTaxAmount($cartItem['price'], $product['tax']) * $cartItem['quantity'] : 0,
+            'productSubtotal' => $productSubtotal,
+            'subtotal' => $productSubtotal - ($cartItem['tax_model'] == 'include' ? $taxCalculate : 0),
+            'discountOnProduct' => $discount * $cartItem['quantity'],
         ];
     }
 
@@ -309,7 +313,7 @@ class CartService
         $extraDiscount = session()->get($cartName)['ext_discount'] ?? 0;
         $extraDiscountType = session()->get($cartName)['ext_discount_type'] ?? 'amount';
         if ($extraDiscountType == 'percent' && $extraDiscount > 0) {
-            $extraDiscount = (($subTotalCalculation['subtotal'] + $subTotalCalculation['discountOnProduct']) * $extraDiscount) / 100;
+            $extraDiscount = (($subTotalCalculation['subtotal'] + $subTotalCalculation['discountOnProduct'] - $subTotalCalculation['totalIncludeTax']) * $extraDiscount) / 100;
         }
         if ($extraDiscount) {
             $total -= $extraDiscount;
